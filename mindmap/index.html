@@ -1,0 +1,3024 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Delphica by ICCare — System Architecture</title>
+    <style>
+      :root {
+        --bg: #0a0e1a;
+        --surface: #111827;
+        --surface2: #1a2236;
+        --border: #2a3450;
+        --text: #e2e8f0;
+        --text-dim: #94a3b8;
+        --accent: #60a5fa;
+        --green: #34d399;
+        --amber: #fbbf24;
+        --rose: #fb7185;
+        --purple: #a78bfa;
+        --cyan: #22d3ee;
+        --orange: #fb923c;
+        --gold: #d4a017;
+      }
+
+      body.light {
+        --bg: #f0f4f8;
+        --surface: #ffffff;
+        --surface2: #f1f5f9;
+        --border: #d1d9e6;
+        --text: #1e293b;
+        --text-dim: #64748b;
+      }
+      body.light .connection {
+        opacity: 0.45;
+      }
+      body.light .connection.highlighted {
+        opacity: 1;
+      }
+      body.light .node-title {
+        fill: #1e293b;
+      }
+      body.light .node-subtitle {
+        fill: #64748b;
+      }
+      body.light .connection-label {
+        fill: #475569;
+      }
+
+      /* ─── TEXT SIZE LEVELS ─── */
+      body.text-lg .node-title {
+        font-size: 16px;
+      }
+      body.text-lg .node-subtitle {
+        font-size: 13px;
+      }
+      body.text-lg .node-badge {
+        font-size: 11px;
+      }
+      body.text-lg .node-icon {
+        font-size: 30px;
+      }
+      body.text-lg .connection-label {
+        font-size: 12px;
+      }
+      body.text-lg .zone-label {
+        font-size: 13px;
+      }
+      body.text-lg .detail-panel {
+        font-size: 15px;
+      }
+      body.text-lg .detail-title {
+        font-size: 26px;
+      }
+      body.text-lg .detail-subtitle {
+        font-size: 15px;
+      }
+      body.text-lg .detail-section p,
+      body.text-lg .detail-section li {
+        font-size: 15px;
+      }
+      body.text-lg .detail-section h3 {
+        font-size: 13px;
+      }
+      body.text-lg .detail-flow {
+        font-size: 14px;
+      }
+      body.text-lg .conn-table {
+        font-size: 14px;
+      }
+      body.text-lg .detail-tag {
+        font-size: 13px;
+      }
+      body.text-lg .legend {
+        font-size: 13px;
+      }
+
+      body.text-xl .node-title {
+        font-size: 19px;
+      }
+      body.text-xl .node-subtitle {
+        font-size: 15px;
+      }
+      body.text-xl .node-badge {
+        font-size: 13px;
+      }
+      body.text-xl .node-icon {
+        font-size: 36px;
+      }
+      body.text-xl .connection-label {
+        font-size: 14px;
+      }
+      body.text-xl .zone-label {
+        font-size: 15px;
+      }
+      body.text-xl .detail-panel {
+        font-size: 17px;
+      }
+      body.text-xl .detail-title {
+        font-size: 30px;
+      }
+      body.text-xl .detail-subtitle {
+        font-size: 17px;
+      }
+      body.text-xl .detail-section p,
+      body.text-xl .detail-section li {
+        font-size: 17px;
+      }
+      body.text-xl .detail-section h3 {
+        font-size: 14px;
+      }
+      body.text-xl .detail-flow {
+        font-size: 16px;
+      }
+      body.text-xl .conn-table {
+        font-size: 16px;
+      }
+      body.text-xl .detail-tag {
+        font-size: 15px;
+      }
+      body.text-xl .legend {
+        font-size: 15px;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+      }
+
+      /* ─── HEADER ─── */
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        background: linear-gradient(180deg, var(--bg) 0%, transparent 100%);
+        padding: 20px 32px 40px;
+        pointer-events: none;
+      }
+      .header h1 {
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        pointer-events: auto;
+      }
+      .header h1 span {
+        color: var(--gold);
+      }
+      .header h1 .sub {
+        color: var(--text-dim);
+        font-weight: 400;
+        font-size: 14px;
+      }
+      .header p {
+        font-size: 12px;
+        color: var(--text-dim);
+        margin-top: 4px;
+        pointer-events: auto;
+      }
+
+      /* ─── VIEW TOGGLE ─── */
+      .view-toggle {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 100;
+        display: flex;
+        gap: 4px;
+      }
+      .view-btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text-dim);
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 600;
+        transition: all 0.2s;
+        font-family: inherit;
+      }
+      .view-btn:hover {
+        background: var(--surface2);
+        color: var(--text);
+      }
+      .view-btn.active {
+        background: var(--gold);
+        color: var(--bg);
+        border-color: var(--gold);
+      }
+
+      /* ─── CANVAS ─── */
+      #canvas {
+        width: 100%;
+        height: 100%;
+        cursor: grab;
+      }
+      #canvas:active {
+        cursor: grabbing;
+      }
+
+      /* ─── SVG ELEMENTS ─── */
+      .connection {
+        fill: none;
+        stroke-width: 2;
+        opacity: 0.35;
+        transition:
+          opacity 0.3s,
+          stroke-width 0.3s;
+      }
+      .connection.highlighted {
+        opacity: 0.9;
+        stroke-width: 3;
+      }
+      .connection-label {
+        font-size: 10px;
+        fill: var(--text-dim);
+        text-anchor: middle;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+      }
+      .connection-label.visible {
+        opacity: 1;
+      }
+
+      /* ─── NODE GROUP ─── */
+      .node-group {
+        cursor: pointer;
+      }
+      .node-group:hover .node-bg {
+        filter: brightness(1.3);
+      }
+      .node-group.active .node-bg {
+        filter: brightness(1.5);
+      }
+      .node-group .node-ring {
+        fill: none;
+        stroke-width: 2;
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+      .node-group:hover .node-ring,
+      .node-group.active .node-ring {
+        opacity: 0.6;
+      }
+      .node-icon {
+        font-size: 24px;
+        text-anchor: middle;
+        dominant-baseline: central;
+        pointer-events: none;
+      }
+      .node-title {
+        font-size: 13px;
+        font-weight: 600;
+        text-anchor: middle;
+        fill: var(--text);
+        pointer-events: none;
+      }
+      .node-subtitle {
+        font-size: 10px;
+        text-anchor: middle;
+        fill: var(--text-dim);
+        pointer-events: none;
+      }
+      .node-badge {
+        font-size: 9px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: central;
+        pointer-events: none;
+      }
+
+      /* ─── ZONE LABELS ─── */
+      .zone-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        fill: none;
+        text-anchor: middle;
+        pointer-events: none;
+      }
+      .zone-hit {
+        fill: transparent;
+        cursor: pointer;
+        pointer-events: all;
+      }
+      .zone-hit:hover + rect,
+      .zone-hit:hover ~ .zone-border {
+        stroke-opacity: 0.6 !important;
+      }
+      .zone-group:hover .zone-border {
+        stroke-opacity: 0.6;
+      }
+      .zone-group {
+        cursor: pointer;
+      }
+      .zone-group:hover .zone-label-text {
+        fill-opacity: 0.8 !important;
+      }
+
+      /* ─── DETAIL PANEL ─── */
+      .detail-panel {
+        position: fixed;
+        right: -500px;
+        top: 0;
+        bottom: 0;
+        width: 480px;
+        background: var(--surface);
+        border-left: 1px solid var(--border);
+        z-index: 200;
+        transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow-y: auto;
+        padding: 28px;
+      }
+      .detail-panel.open {
+        right: 0;
+      }
+      .detail-panel .close-btn {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        color: var(--text-dim);
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+      }
+      .detail-panel .close-btn:hover {
+        color: var(--text);
+        background: var(--border);
+      }
+      .detail-icon {
+        font-size: 40px;
+        margin-bottom: 12px;
+      }
+      .detail-title {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin-bottom: 4px;
+      }
+      .detail-subtitle {
+        font-size: 13px;
+        color: var(--text-dim);
+        margin-bottom: 20px;
+      }
+      .detail-section {
+        margin-bottom: 20px;
+      }
+      .detail-section h3 {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-dim);
+        margin-bottom: 8px;
+      }
+      .detail-section p,
+      .detail-section li {
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--text);
+      }
+      .detail-section ul {
+        list-style: none;
+        padding: 0;
+      }
+      .detail-section li {
+        padding: 4px 0 4px 16px;
+        position: relative;
+      }
+      .detail-section li::before {
+        content: ">";
+        position: absolute;
+        left: 0;
+        color: var(--accent);
+        font-weight: 700;
+        font-family: monospace;
+      }
+      .detail-tag {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        margin: 2px 4px 2px 0;
+      }
+      .detail-flow {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 16px;
+        font-family: "Fira Code", "Cascadia Code", monospace;
+        font-size: 12px;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        color: var(--text-dim);
+        overflow-x: auto;
+      }
+      .detail-flow .hl {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .detail-flow .gr {
+        color: var(--green);
+      }
+      .detail-flow .am {
+        color: var(--amber);
+      }
+      .detail-flow .ro {
+        color: var(--rose);
+      }
+      .detail-flow .gd {
+        color: var(--gold);
+      }
+      .conn-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+      .conn-table th {
+        text-align: left;
+        padding: 6px 8px;
+        color: var(--text-dim);
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid var(--border);
+      }
+      .conn-table td {
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--surface2);
+        color: var(--text);
+      }
+      .conn-table .arrow {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      /* ─── LEGEND ─── */
+      .legend {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        z-index: 100;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 18px;
+        font-size: 11px;
+      }
+      .legend-title {
+        font-weight: 700;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+        font-size: 10px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+        color: var(--text-dim);
+      }
+      .legend-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .legend-line {
+        width: 20px;
+        height: 2px;
+        flex-shrink: 0;
+        border-radius: 1px;
+      }
+
+      /* ─── ZOOM CONTROLS ─── */
+      .zoom-controls {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .zoom-btn {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        color: var(--text);
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        font-family: inherit;
+      }
+      .zoom-btn:hover {
+        background: var(--surface2);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1><span>Delphica</span> <span class="sub">by ICCare</span></h1>
+      <p style="color: var(--text-dim); font-size: 13px; margin-bottom: 2px">
+        Ask better questions. Get better answers.
+      </p>
+      <p>Click any module to explore. Drag to pan. Scroll to zoom.</p>
+    </div>
+
+    <div class="view-toggle">
+      <button
+        class="view-btn active"
+        onclick="switchView('traditional')"
+        id="btn-traditional"
+      >
+        Traditional
+      </button>
+      <button class="view-btn" onclick="switchView('system')" id="btn-system">
+        System
+      </button>
+      <button
+        class="view-btn"
+        onclick="switchView('marketplace')"
+        id="btn-marketplace"
+      >
+        Marketplace
+      </button>
+      <button
+        class="view-btn"
+        onclick="toggleTheme()"
+        id="btn-theme"
+        title="Toggle light/dark (T)"
+      >
+        &#x263E;
+      </button>
+    </div>
+
+    <svg id="canvas" xmlns="http://www.w3.org/2000/svg"></svg>
+
+    <div class="detail-panel" id="detailPanel">
+      <button class="close-btn" onclick="closePanel()">&times;</button>
+      <div id="detailContent"></div>
+    </div>
+
+    <div class="legend" id="legendTraditional">
+      <div class="legend-title">Traditional Medicine</div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #94a3b8"></div>
+        Patient (Raw Material)
+      </div>
+      <div class="legend-item">
+        <div
+          class="legend-dot"
+          style="background: #1e293b; border: 2px solid #94a3b8"
+        ></div>
+        Physician (Black Box)
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #64748b"></div>
+        Care Plan (Output)
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #475569"></div>
+        Feedback Loop
+      </div>
+    </div>
+
+    <div class="legend" id="legendSystem" style="display: none">
+      <div class="legend-title">Security Zones</div>
+      <div class="legend-item">
+        <div
+          class="legend-line"
+          style="background: #60a5fa; opacity: 0.4"
+        ></div>
+        HIPAA Envelope (Zone 1)
+      </div>
+      <div class="legend-item">
+        <div
+          class="legend-line"
+          style="background: #fb7185; opacity: 0.6; border: 1px dashed #fb7185"
+        ></div>
+        Air Gap (Zone 2)
+      </div>
+      <div class="legend-item">
+        <div
+          class="legend-line"
+          style="background: #94a3b8; opacity: 0.3"
+        ></div>
+        Edge Horizon (Zone 3)
+      </div>
+      <div style="margin-top: 10px" class="legend-title">Modules</div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #d4a017"></div>
+        Claude (Central Engine)
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #60a5fa"></div>
+        Core AI Pipeline
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #a78bfa"></div>
+        Intelligence / Analysis
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #34d399"></div>
+        Data & Feedback
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #fb923c"></div>
+        Safety & Security
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #e2e8f0"></div>
+        Human Actors
+      </div>
+    </div>
+
+    <div class="legend" id="legendMarketplace" style="display: none">
+      <div class="legend-title">Protocol Lifecycle</div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #e2e8f0"></div>
+        Human Actors
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #a78bfa"></div>
+        Review & Validation
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #60a5fa"></div>
+        Technology Layer
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #34d399"></div>
+        Revenue & Outcomes
+      </div>
+      <div class="legend-item">
+        <div class="legend-dot" style="background: #d4a017"></div>
+        Learning Loop
+      </div>
+    </div>
+
+    <div class="zoom-controls">
+      <button class="zoom-btn" onclick="zoomIn()">+</button>
+      <button class="zoom-btn" onclick="zoomOut()">&minus;</button>
+      <button class="zoom-btn" onclick="resetView()" style="font-size: 12px">
+        R
+      </button>
+      <button
+        class="zoom-btn"
+        onclick="cycleTextSize()"
+        id="btn-text-size"
+        title="Text size (F)"
+        style="font-size: 13px; font-weight: 700"
+      >
+        A
+      </button>
+    </div>
+
+    <script>
+      // ═══════════════════════════════════════════════════════════════
+      // STATE
+      // ═══════════════════════════════════════════════════════════════
+      let currentView = "system";
+      let viewX = 0,
+        viewY = 0,
+        zoom = 0.7;
+      let dragging = false,
+        dragStartX,
+        dragStartY;
+      let activeNode = null;
+      let lightMode = false;
+
+      function isLight() {
+        return lightMode;
+      }
+      function toggleTheme() {
+        lightMode = !lightMode;
+        document.body.classList.toggle("light", lightMode);
+        document.getElementById("btn-theme").innerHTML = lightMode
+          ? "&#x2600;"
+          : "&#x263E;";
+        switchView(currentView);
+      }
+      const TEXT_SCALE = [1.0, 1.35, 1.7];
+      let textSizeIdx = 0;
+
+      /* Apply current text scale to ALL text on canvas + panels */
+      function applyTextScale() {
+        const s = TEXT_SCALE[textSizeIdx];
+        if (s === 1.0) return; // default — nothing to override
+        // SVG canvas text (nodes, connections, zones, step numbers)
+        const svgRules = [
+          [".node-title", 13],
+          [".node-subtitle", 10],
+          [".node-badge", 9],
+          [".node-icon", 24],
+          [".connection-label", 10],
+          [".zone-label", 11],
+        ];
+        svgRules.forEach(([sel, base]) => {
+          document.querySelectorAll(sel).forEach((el) => {
+            el.setAttribute("font-size", Math.round(base * s));
+          });
+        });
+        // Step number circles — scale radius + font
+        document.querySelectorAll("#step-numbers text").forEach((el) => {
+          el.setAttribute("font-size", Math.round(10 * s));
+        });
+        document.querySelectorAll("#step-numbers circle").forEach((el) => {
+          el.setAttribute("r", Math.round(11 * s));
+        });
+        // HTML detail panel
+        const panel = document.querySelector(".detail-panel");
+        if (panel) panel.style.fontSize = 14 * s + "px";
+        const dt = document.querySelector(".detail-title");
+        if (dt) dt.style.fontSize = 24 * s + "px";
+        const ds = document.querySelector(".detail-subtitle");
+        if (ds) ds.style.fontSize = 13 * s + "px";
+        document
+          .querySelectorAll(".detail-section p, .detail-section li")
+          .forEach((el) => (el.style.fontSize = 14 * s + "px"));
+        document
+          .querySelectorAll(".detail-section h3")
+          .forEach((el) => (el.style.fontSize = 12 * s + "px"));
+        document
+          .querySelectorAll(".detail-flow")
+          .forEach((el) => (el.style.fontSize = 13 * s + "px"));
+        document
+          .querySelectorAll(".conn-table")
+          .forEach((el) => (el.style.fontSize = 13 * s + "px"));
+        document
+          .querySelectorAll(".detail-tag")
+          .forEach((el) => (el.style.fontSize = 12 * s + "px"));
+        // Legends
+        document
+          .querySelectorAll(".legend")
+          .forEach((el) => (el.style.fontSize = 12 * s + "px"));
+      }
+
+      function cycleTextSize() {
+        textSizeIdx = (textSizeIdx + 1) % TEXT_SCALE.length;
+        applyTextScale();
+        // For scale 1.0, reset everything to CSS defaults
+        if (TEXT_SCALE[textSizeIdx] === 1.0) {
+          document
+            .querySelectorAll(
+              ".node-title, .node-subtitle, .node-badge, .node-icon, .connection-label, .zone-label, #step-numbers text",
+            )
+            .forEach((el) => el.removeAttribute("font-size"));
+          document
+            .querySelectorAll("#step-numbers circle")
+            .forEach((el) => el.setAttribute("r", "11"));
+          document
+            .querySelectorAll(
+              ".detail-panel, .detail-title, .detail-subtitle, .detail-flow, .conn-table, .legend",
+            )
+            .forEach((el) => (el.style.fontSize = ""));
+          document
+            .querySelectorAll(
+              ".detail-section p, .detail-section li, .detail-section h3, .detail-tag",
+            )
+            .forEach((el) => (el.style.fontSize = ""));
+        }
+        const labels = ["A", "A+", "A++"];
+        document.getElementById("btn-text-size").textContent =
+          labels[textSizeIdx];
+      }
+
+      let animFrame;
+      let particles = [];
+
+      // ═══════════════════════════════════════════════════════════════
+      // TRADITIONAL VIEW — MODULE DEFINITIONS
+      // ═══════════════════════════════════════════════════════════════
+
+      const TRADITIONAL_MODULES = {
+        trad_patient: {
+          id: "trad_patient",
+          icon: "\u{1F464}",
+          title: "Patient",
+          subtitle: "Raw Material — Complaint",
+          color: "#94a3b8",
+          x: 0,
+          y: -320,
+          radius: 56,
+          badge: "INPUT",
+          badgeColor: "#94a3b8",
+          detail: {
+            description:
+              "The patient arrives with a complaint. In traditional medicine, they are the raw material entering the healthcare factory. This is where every clinical encounter begins.",
+            whatItDoes: [
+              "Presents with symptoms and complaints",
+              "Relies on memory for medication history",
+              "Medical records fragmented across providers",
+              "No structured symptom tracking between visits",
+              "No continuous engagement with care team",
+            ],
+            techStack: "Paper forms, phone calls, fax machines",
+            llmCalls: "None — traditional model",
+            dbTables: ["Scattered across EHR silos"],
+            fileRef: "Traditional Medicine Model",
+            flow: '<span class="ro">Problems with the traditional patient experience:</span>\n\n\u2022 Fragmented medical records across providers\n\u2022 No structured symptom tracking between visits\n\u2022 Reliance on memory for medication adherence\n\u2022 No continuous engagement with care team\n\u2022 Patient is passive — receives instructions, goes home\n\n<span class="hl">This is the starting point Delphica transforms.</span>',
+          },
+        },
+        trad_physician: {
+          id: "trad_physician",
+          icon: "\u{1F468}\u200D\u2695\uFE0F",
+          title: "Physician",
+          subtitle: "The Black Box",
+          color: "#1e293b",
+          x: 0,
+          y: -40,
+          radius: 64,
+          badge: "BLACK BOX",
+          badgeColor: "#64748b",
+          detail: {
+            description:
+              "The physician is a black box — knowledge and experience locked inside one person. The quality of care depends entirely on which physician you see. When they retire, their expertise vanishes.",
+            whatItDoes: [
+              "Diagnoses based on individual training and experience",
+              "Knowledge limited to what one person can learn",
+              "No access to collective physician intelligence",
+              "Cognitive overload: 10,000+ diseases, 30,000+ clinical trials per year",
+              "Expertise dies when the physician retires",
+              "Diagnosis quality varies wildly by practitioner",
+            ],
+            techStack: "Stethoscope, clinical intuition, memory",
+            llmCalls: "None — human cognition only",
+            dbTables: ["Personal experience (non-transferable)"],
+            fileRef: "Traditional Medicine Model",
+            flow: '<span class="ro">The Black Box Problem:</span>\n\n\u2022 10,000+ known diseases\n\u2022 30,000+ clinical trials published per year\n\u2022 No human can keep up\n\u2022 Expertise is locked in one brain\n\u2022 When a physician retires, decades of\n  pattern recognition disappear\n\u2022 Diagnosis quality varies wildly\n\n<span class="hl">This is what Delphica opens up.</span>\n<span class="am">The System tab reveals what\u2019s inside the black box.</span>',
+          },
+        },
+        trad_careplan: {
+          id: "trad_careplan",
+          icon: "\u{1F4CB}",
+          title: "Care Plan",
+          subtitle: "Output",
+          color: "#64748b",
+          x: 0,
+          y: 240,
+          radius: 50,
+          badge: "OUTPUT",
+          badgeColor: "#64748b",
+          detail: {
+            description:
+              "The care plan is the output of the physician's black box. In traditional medicine, it's often paper-based, locked in EHR silos, with no predictive modeling or automated safety checks.",
+            whatItDoes: [
+              "Prescription and treatment instructions",
+              "Often paper-based or locked in EHR silos",
+              "No predictive outcome modeling",
+              "No automated safety checks (drug interactions, allergies)",
+              "No real-world outcome tracking to improve future plans",
+            ],
+            techStack: "Paper prescriptions, EHR notes, fax referrals",
+            llmCalls: "None — traditional model",
+            dbTables: ["EHR systems (Epic, Athena, etc.)"],
+            fileRef: "Traditional Medicine Model",
+            flow: '<span class="ro">Problems with traditional care plans:</span>\n\n\u2022 Paper-based or locked in EHR silos\n\u2022 No predictive outcome modeling\n\u2022 No automated safety checks\n  (drug interactions, allergies)\n\u2022 No real-world outcome tracking\n\u2022 Each plan is created from scratch\n  — no learning from prior outcomes\n\n<span class="hl">Delphica\u2019s Delphi engine changes this entirely.</span>',
+          },
+        },
+        trad_health: {
+          id: "trad_health",
+          icon: "\u2764\uFE0F",
+          title: "Health?",
+          subtitle: "Feedback Loop",
+          color: "#475569",
+          x: 300,
+          y: -40,
+          radius: 46,
+          badge: "LOOP",
+          badgeColor: "#475569",
+          detail: {
+            description:
+              "If the care plan doesn't resolve the complaint, the patient returns and the cycle repeats. No data is captured from failed iterations. This represents exquisite physician visits — patients keep cycling with wrong diagnoses if not connected to the right thinking physician.",
+            whatItDoes: [
+              "If unresolved, patient returns to physician",
+              "The cycle repeats — often with the same approach",
+              "No data captured from failed iterations",
+              "No mechanism to learn from what didn't work",
+              "Patients keep cycling with wrong diagnoses",
+              "This is where the system breaks down",
+            ],
+            techStack: "Appointment scheduling, repeat visits",
+            llmCalls: "None — traditional model",
+            dbTables: ["None — no feedback data captured"],
+            fileRef: "Traditional Medicine Model",
+            flow: '<span class="ro">Where the system breaks down:</span>\n\n\u2022 Patient doesn\u2019t improve\n\u2022 Returns to physician (another visit, another bill)\n\u2022 No data from the failed attempt is captured\n\u2022 Physician tries again from memory\n\u2022 Cycle repeats indefinitely\n\n<span class="am">"Represents exquisite physician visits"</span>\n\u2022 Patients keep cycling with wrong diagnoses\n  if not connected to the right thinking physician\n\n<span class="hl">Delphica\u2019s learning loop captures every iteration\nand feeds it back into the system.</span>',
+          },
+        },
+      };
+
+      const TRADITIONAL_CONNECTIONS = [
+        {
+          from: "trad_patient",
+          to: "trad_physician",
+          label: "complaint",
+          color: "#94a3b8",
+          type: "data",
+        },
+        {
+          from: "trad_physician",
+          to: "trad_careplan",
+          label: "diagnosis + treatment",
+          color: "#64748b",
+          type: "data",
+        },
+        {
+          from: "trad_careplan",
+          to: "trad_health",
+          label: "follow care plan",
+          color: "#64748b",
+          type: "data",
+        },
+        {
+          from: "trad_health",
+          to: "trad_patient",
+          label: "if not resolved \u2192 repeat",
+          color: "#fb7185",
+          type: "feedback",
+          dash: true,
+        },
+      ];
+
+      // ═══════════════════════════════════════════════════════════════
+      // SYSTEM VIEW — MODULE DEFINITIONS
+      // ═══════════════════════════════════════════════════════════════
+
+      const SYSTEM_MODULES = {
+        // ── EDGE HORIZON (Zone 3) — Human Actors ──
+        physician: {
+          id: "physician",
+          icon: "\u{1F468}\u200D\u2695\uFE0F",
+          title: "Physician",
+          subtitle: "Primary Decision Maker",
+          color: "#e2e8f0",
+          x: -780,
+          y: -40,
+          radius: 52,
+          badge: "HUMAN",
+          badgeColor: "#e2e8f0",
+          zone: "edge",
+          detail: {
+            description:
+              "The physician is the primary actor in the Delphica system. They access the platform via a HIPAA-compliant portal on their practice's website. All clinical data enters and exits through this actor.",
+            whatItDoes: [
+              "Uploads patient data via voice commands or PDF documents",
+              "Reviews and selects Delphi treatment scenarios",
+              "Conducts virtual patient conversations",
+              "Downloads care plan as PDF",
+              "Stores PDF in their existing EHR (Epic, Athena, etc.)",
+              "Publishes protocols to the Marketplace",
+              "Reports patient outcomes (feeds learning loop)",
+            ],
+            techStack: "HIPAA-compliant web portal — browser-based",
+            llmCalls: "None — human actor",
+            dbTables: ["Interacts via portal UI"],
+            fileRef: "Edge Horizon — outside air gap",
+            flow: '<span class="gd">EHR-Independent Workflow:</span>\n\n1. Physician accesses Delphica portal\n2. Uploads patient info (voice / PDF)\n3. System processes through pipeline\n4. Physician reviews care plan\n5. Downloads PDF\n6. Stores in their existing EHR\n\n<span class="hl">No EHR integration required at launch.</span>\nEpic = 5-year wait. Athena = 6-12 months.\nThis workflow bypasses both.',
+          },
+        },
+        patient: {
+          id: "patient",
+          icon: "\u{1F464}",
+          title: "Patient",
+          subtitle: "Care Recipient",
+          color: "#e2e8f0",
+          x: 780,
+          y: -40,
+          radius: 48,
+          badge: "HUMAN",
+          badgeColor: "#e2e8f0",
+          zone: "edge",
+          detail: {
+            description:
+              "Patients interact with the system through the Patient Portal ($15/month). They participate in their care through daily check-ins, progress tracking, and outcome reporting — creating the behavioral moat that differentiates Delphica from ChatGPT.",
+            whatItDoes: [
+              "Accesses patient portal ($15/month)",
+              "Daily check-ins and progress tracking",
+              "Receives push notifications",
+              "Uploads lab results (LabCorp, Quest)",
+              "Views progress charts and streaks",
+              "Physician alerts when adherence drops below 70%",
+              "Outcome reporting feeds the learning loop",
+            ],
+            techStack: "Web portal + Mobile app (Month 15+)",
+            llmCalls: "None — human actor",
+            dbTables: ["patient_outcomes", "clinical_outcomes"],
+            fileRef: "Edge Horizon — outside air gap",
+            flow: '<span class="gd">Patient Journey:</span>\n\n1. Physician registers patient for protocol\n2. Patient accesses portal ($15/mo)\n3. Daily check-ins (streaks, charts)\n4. Push notifications for adherence\n5. Lab result uploads\n6. <span class="ro">Alert</span> if adherence < 70%\n7. Outcome data feeds back to\n   <span class="am">Clinical Reasoning Engine</span> learning loop\n\n<span class="hl">Behavioral moat:</span>\nPatients pay for accountability,\nnot information.',
+          },
+        },
+
+        patportal: {
+          id: "patportal",
+          icon: "\u{1F4AC}",
+          title: "Patient Portal",
+          subtitle: "AI Avatar & Protocol Execution",
+          color: "#f472b6",
+          x: 700,
+          y: 160,
+          radius: 44,
+          badge: "$15/mo",
+          badgeColor: "#f472b6",
+          zone: "edge",
+          detail: {
+            description:
+              "Patient-facing interface powered by 11 Labs voice AI. An AI avatar acts as the physician's proxy — keeping patients on protocol, running scheduled check-ins, answering questions, sending lab slips, and packaging all patient data for physician review. Patients pay $15/month for portal access as part of their protocol purchase. This is outside the Delphi clinical experience — it's a parallel execution layer.",
+            whatItDoes: [
+              "AI Avatar — 11 Labs voice agent with emotion, guided conversation trees",
+              "Protocol delivery — care plan explained in patient's language and education level (via Semantic Processor)",
+              "Scheduled check-ins — weekly/daily adherence tracking, symptom logging",
+              "Lab scheduling — auto-sends lab slips at protocol milestones (e.g., 3-month blood work)",
+              "Q&A — answers patient questions about protocol, escalates to physician when needed",
+              "Physician packaging — collates patient data, flags non-adherence, packages for review",
+              "Revenue split: Platform 35% / Practitioner 40% / Creator 30%",
+            ],
+            techStack:
+              "11 Labs voice agents · Conversation tree engine · Semantic Processor (output contextualization) · Web portal + Mobile app (Phase 4)",
+            llmCalls: "Voice agent calls (11 Labs, not Claude)",
+            dbTables: [
+              "patient_portal_sessions",
+              "check_in_responses",
+              "adherence_logs",
+              "lab_schedules",
+              "avatar_conversations",
+            ],
+            fileRef: "Integration pending — 11 Labs agents platform",
+            flow: '<span class="gd">Protocol Activation:</span>\n  Patient purchases protocol ($15/mo)\n  │\n  ▼\n<span class="am">AI Avatar</span> (11 Labs) activates\n  Personalized voice, conversation trees\n  │\n  ├─ Weekly/daily check-ins\n  ├─ Symptom logging\n  ├─ Lab slip reminders (3-month blood work)\n  └─ Q&A (protocol questions)\n  │\n  ▼\n<span class="gd">Patient data packaged</span>\n  → Physician review dashboard\n  → <span class="ro">Flags</span> non-adherence / concerns\n  │\n  ▼\n<span class="hl">Feedback loop:</span>\n  Patient data → <span class="am">Entry Control</span>\n  → Clinical pipeline for follow-up\n\n<span class="hl">Revenue:</span> 35% platform · 40% practitioner · 30% creator',
+          },
+        },
+
+        // ── AIR GAP (Zone 2) — Security Controls ──
+        entry: {
+          id: "entry",
+          icon: "\u{1F6E1}\uFE0F",
+          title: "Entry Control",
+          subtitle: "VirusTotal + Sanitization",
+          color: "#fb7185",
+          x: -540,
+          y: -180,
+          radius: 42,
+          badge: "SCAN",
+          badgeColor: "#fb7185",
+          zone: "airgap",
+          detail: {
+            description:
+              "The single controlled entry point through the air gap. Every file and data payload is scanned by VirusTotal (153 virus checkers) and placed in a single-use storage container before being sanitized and passed into the HIPAA envelope.",
+            whatItDoes: [
+              "VirusTotal API scan — 153 virus checkers simultaneously",
+              "Single-use storage device — disposable container for incoming data",
+              "Malware detection for uploaded PDFs, voice files, lab results",
+              "Container destroyed after sanitization (security measure)",
+              "Only sanitized data passes into the HIPAA envelope",
+            ],
+            techStack:
+              "VirusTotal API (virustotal.com) → Ephemeral container → Sanitized pass-through",
+            llmCalls: "None — pure security layer",
+            dbTables: ["None — stateless gate"],
+            fileRef: "Air Gap Boundary — Zone 2",
+            flow: '<span class="ro">External file arrives</span>\n  │\n  ▼\n<span class="am">VirusTotal API</span>\n  153 virus checkers run simultaneously\n  API call — automated, no human delay\n  99.8% detection rate\n  │\n  ▼\n<span class="am">Single-Use Storage</span>\n  Data lands in disposable container\n  Checked once, verified\n  Container destroyed after\n  │\n  ▼\n<span class="gr">Sanitized data</span> → enters HIPAA envelope',
+          },
+        },
+        exit: {
+          id: "exit",
+          icon: "\u{1F510}",
+          title: "Exit Control",
+          subtitle: "De-identification Layer",
+          color: "#fb7185",
+          x: 540,
+          y: -180,
+          radius: 42,
+          badge: "PHI\u2717",
+          badgeColor: "#fb7185",
+          zone: "airgap",
+          detail: {
+            description:
+              "The single controlled exit point through the air gap. Any data leaving the HIPAA envelope is stripped of Protected Health Information (PHI) by the de-identification middleware before it can reach external services.",
+            whatItDoes: [
+              "Strips all PHI (Protected Health Information)",
+              "De-identifies data before any external transmission",
+              "Applies to exported reports, analytics, external API calls",
+              "Ensures nothing identifiable leaves the system",
+              "Independent of LLM provider compliance",
+            ],
+            techStack:
+              "De-identification middleware → PHI stripping → Sanitized output",
+            llmCalls: "None — pure security layer",
+            dbTables: ["None — stateless gate"],
+            fileRef: "Air Gap Boundary — Zone 2",
+            flow: '<span class="hl">Data needs to leave system</span>\n  │\n  ▼\n<span class="am">De-identification Layer</span>\n  Strips all PHI:\n  ├─ Names, DOB, SSN\n  ├─ Medical record numbers\n  ├─ Geographic identifiers\n  └─ Any unique identifier\n  │\n  ▼\n<span class="gr">Sanitized output</span>\n  exits through air gap\n\nApplies to:\n  • External API calls\n  • Exported reports\n  • Analytics & aggregations\n  • Care plan PDFs (redacted)',
+          },
+        },
+
+        // ── HIPAA ENVELOPE (Zone 1) — Core System ──
+        dao: {
+          id: "dao",
+          icon: "\u{1F4CB}",
+          title: "Intake",
+          subtitle: "Data Acquisition & Orchestration",
+          color: "#34d399",
+          x: -250,
+          y: -360,
+          radius: 44,
+          badge: "ENTRY",
+          badgeColor: "#34d399",
+          zone: "hipaa",
+          detail: {
+            description:
+              "The front door of every clinical encounter inside the HIPAA envelope. Receives sanitized data from the Entry Control gate and stores it as a clinical session.",
+            whatItDoes: [
+              "Creates clinical sessions with patient context",
+              "Captures SOAP notes: chief complaint, HPI, vitals, labs, assessment",
+              "Stores structured diagnosis entries (ICD-10 codes)",
+              "Stores treatment entries (CPT codes)",
+              "Auto-triggers Semantic Processor when codes are missing",
+            ],
+            techStack: "tRPC endpoint → MySQL (Drizzle ORM)",
+            llmCalls: "None directly — hands off to Semantic Processor",
+            dbTables: [
+              "clinical_sessions",
+              "diagnosis_entries",
+              "treatment_entries",
+              "dao_protocol_entries",
+            ],
+            fileRef:
+              "server/routers.ts — dao.create, daoProtocol.createSession",
+            flow: '<span class="gr">Sanitized data from Entry Control</span>\n  │\n  ▼\n<span class="hl">Physician Input</span>\n  ├─ Chief complaint, HPI, vitals, labs\n  ├─ Physical exam findings\n  └─ Assessment & plan text\n        │\n        ▼\n  <span class="gr">MySQL</span>: clinical_sessions + diagnosis_entries\n        │\n        ▼\n  Passes structured data → <span class="am">Semantic Processor</span>',
+          },
+        },
+        semantic: {
+          id: "semantic",
+          icon: "\u{1F9EC}",
+          title: "Semantic Processor",
+          subtitle: "Encode Intake ↔ Decode Output",
+          color: "#60a5fa",
+          x: 0,
+          y: -470,
+          radius: 48,
+          badge: "3+ LLM",
+          badgeColor: "#60a5fa",
+          zone: "hipaa",
+          detail: {
+            description:
+              "Dual-role module that bookends the clinical pipeline. At INTAKE it encodes free-text clinical notes into standardized medical codes (ICD-10, CPT, SNOMED). At OUTPUT it decodes Delphi-2M longevity projections into patient-facing language — adapted for language, education level, and cultural context. Also the context repository: stores per-patient communication preferences that grow over time.",
+            whatItDoes: [
+              "INTAKE: generateICD10Codes() → Diagnosis codes with confidence scores",
+              "INTAKE: generateCPTCodes() → Procedure codes with modifiers",
+              "INTAKE: extractClinicalEntities() → Symptoms, medications, procedures",
+              "INTAKE: processClinicalNote() → Runs all 3 in parallel via Promise.all()",
+              "OUTPUT: Contextualizes Delphi-2M scenario projections for patient communication",
+              "OUTPUT: Adapts language (English, Chinese, etc.) + reading level (default 8th grade)",
+              "OUTPUT: Formats scenario comparison for shared decision-making",
+              "OUTPUT: Attaches billing codes (CPT) + diagnostic codes (ICD-10) to care plan",
+            ],
+            techStack:
+              "3× Claude API calls intake (parallel) + 1× Claude output contextualization",
+            llmCalls:
+              "3 intake (ICD-10 + CPT + entities) + 1 output (contextualization)",
+            dbTables: [
+              "codingQualityMetrics",
+              "patient_context (language, education level, cultural prefs)",
+            ],
+            fileRef: "server/semanticProcessor.ts (196 lines)",
+            flow: '<span class="gd">DUAL ROLE — Encode ↔ Decode</span>\n\n<span class="am">━━ INTAKE (Step 3) ━━</span>\n<span class="hl">Clinical Note Text</span>\n  ├─ <span class="am">Claude</span> → ICD-10 codes (E11.65, I10)\n  ├─ <span class="am">Claude</span> → CPT codes (99214, 83036)\n  └─ <span class="am">Claude</span> → Entities (symptoms, meds)\n  All 3 in parallel (~3-5 sec)\n         │\n         ▼\n  <span class="gr">Coded data</span> → Clinical Reasoning Engine\n\n<span class="am">━━ OUTPUT (Step 7) ━━</span>\n<span class="hl">Delphi-2M projections arrive</span>\n  │\n  ▼\n  Cross-ref intake codes ↔ predicted risks\n  │\n  ▼\n  <span class="am">Claude</span> → Contextualize:\n  • Language (EN, ZH, ES...)\n  • Reading level (8th grade)\n  • Scenario comparison format\n  │\n  ▼\n  <span class="gr">Care plan + billing codes + diagnostics</span>\n  → Physician → Patient\n\n<span class="ro">"Tell me which one you want."</span>',
+          },
+        },
+        causal: {
+          id: "causal",
+          icon: "\u{1F9E0}",
+          title: "Clinical Reasoning Engine",
+          subtitle: "Knowledge-Guided Analysis",
+          color: "#a78bfa",
+          x: 280,
+          y: -340,
+          radius: 56,
+          badge: "2-4 LLM",
+          badgeColor: "#a78bfa",
+          zone: "hipaa",
+          detail: {
+            description:
+              "The brain of the system. Performs a two-phase reasoning pipeline: first retrieves medical evidence, then generates treatment recommendations grounded in that evidence. Also supports causal analysis and reinforcement learning from outcomes.",
+            whatItDoes: [
+              "retrieveEvidence() → Claude finds relevant studies, trials, guidelines",
+              "generateTreatmentRecommendations() → Two-phase: evidence → recommendations",
+              "performCausalAnalysis() → Simulated statistical causal inference",
+              "updateTreatmentPolicy() → Adjusts confidence from real outcomes (RL)",
+            ],
+            techStack:
+              "2-4× Claude API calls (sequential) → JSON schemas → MySQL",
+            llmCalls: "2 minimum (evidence + recommendations), up to 4",
+            dbTables: [
+              "treatment_recommendations",
+              "causal_analyses",
+              "evidence_cache",
+            ],
+            fileRef: "server/causalBrain.ts (449 lines)",
+            flow: '<span class="hl">Patient Context</span> (from DB)\n  │\n  ▼\n<span class="am">PHASE 1: Evidence Retrieval</span>\n  Claude as medical research librarian\n  Returns 5 studies with findings\n  │\n  ▼\n<span class="am">PHASE 2: Treatment Recommendations</span>\n  Claude as clinical decision support\n  Returns 3 ranked treatments with:\n    • confidence score\n    • dosage, frequency, duration\n    • evidence citations\n  │\n  ▼\n<span class="gr">MySQL</span>: treatment_recommendations\n  │\n  ├──→ <span class="ro">Delphi Simulator</span>\n  └──→ <span class="ro">Precision Care</span>',
+          },
+        },
+        delphi: {
+          id: "delphi",
+          icon: "\u{1F52E}",
+          title: "Delphi Simulator",
+          subtitle: "Treatment Scenario Explorer",
+          color: "#a78bfa",
+          x: 400,
+          y: 80,
+          radius: 46,
+          badge: "4-5 LLM",
+          badgeColor: "#a78bfa",
+          zone: "hipaa",
+          detail: {
+            description:
+              "An 8-step interactive treatment exploration system. Physicians walk through Patient Context → Causal Brain Evidence → Delphi Scenarios → Virtual Patient → Outcome Predictions → What-If Analysis → Scenario Comparison → Selection + Learning Loop. All scenarios are grounded in Clinical Reasoning Engine evidence, and final selections feed back to improve future recommendations.",
+            whatItDoes: [
+              "① Patient Context — extracts demographics, meds, allergies, chronic conditions, diagnosis",
+              "② Causal Brain Evidence — retrieves top 5 evidence items (trials, FDA guidelines, literature)",
+              "③ Delphi Scenarios — LLM generates 3-5 treatment paths with dosage, timeline, goals",
+              "④ Virtual Patient — conversational role-play (physician ↔ AI patient persona)",
+              "⑤ Outcome Predictions — 5-8 outcomes with probability, severity, expected day, evidence citations",
+              "⑥ What-If Analysis — scenarios sent to Delphi-2M for 20-year longevity projections; results compared back here",
+              "⑦ Scenario Comparison — ranked side-by-side with scores (0-100) and reasoning",
+              "⑧ Selection + Learning Loop — physician picks best plan → feeds back to Clinical Reasoning Engine",
+            ],
+            techStack:
+              "4-5× Claude API calls (JSON schema) + 1 per conversation turn · Causal Brain evidence injection at 4 points · Drizzle ORM → PostgreSQL",
+            llmCalls: "4-5 structured calls + 1 per virtual patient message",
+            dbTables: [
+              "simulation_scenarios",
+              "scenario_interactions",
+              "scenario_outcomes",
+              "scenario_comparisons",
+              "interaction_feedback",
+              "outcome_feedback",
+            ],
+            fileRef:
+              "server/delphiSimulator.ts (391 lines) · client/src/pages/DelphiSimulator.tsx (1123 lines)",
+            flow: '<span class="gd">Step 1:</span> <span class="am">Patient Context</span>\n  Demographics, meds, allergies, diagnosis code\n  │\n  ▼\n<span class="gd">Step 2:</span> <span class="hl">Clinical Reasoning Engine</span> Evidence\n  Top 5 evidence items (trials, FDA, literature)\n  │\n  ▼\n<span class="gd">Step 3:</span> <span class="am">Delphi Scenarios</span> (1 LLM call)\n  3-5 treatment paths — drug+dosage, procedure, or lifestyle\n  │\n  ▼\n<span class="gd">Step 4:</span> <span class="am">Virtual Patient</span> (1 LLM per msg)\n  Role-play conversation, persona-aware, day-aware\n  │\n  ▼\n<span class="gd">Step 5:</span> <span class="am">Outcome Predictions</span> (1 LLM call)\n  5-8 outcomes with probability, severity, confidence\n  │\n  ▼\n<span class="gd">Step 6:</span> <span class="am">What-If Analysis</span> ↔ <span class="am">Delphi-2M</span>\n  Scenarios sent to Delphi-2M → 20yr longevity projections returned\n  │\n  ▼\n<span class="gd">Step 7:</span> <span class="am">Scenario Comparison</span> (1 LLM call)\n  Side-by-side ranking with scores (0-100)\n  │\n  ▼\n<span class="gd">Step 8:</span> <span class="am">Selection + Learning Loop</span>\n  Physician selects → updateTreatmentPolicy()\n  Outcomes feed back to <span class="hl">Clinical Reasoning Engine</span>',
+          },
+        },
+        delphi2m: {
+          id: "delphi2m",
+          icon: "\u{231B}",
+          title: "Delphi-2M",
+          subtitle: "Longevity Risk Projector",
+          color: "#c084fc",
+          x: 430,
+          y: 280,
+          radius: 42,
+          badge: "Nature '25",
+          badgeColor: "#c084fc",
+          zone: "hipaa",
+          detail: {
+            description:
+              "Published in Nature (Sept 2025) by the German Cancer Research Center, Heidelberg. A modified GPT-2 model trained on 400K UK Biobank patients and validated on 1.9M Danish records. Predicts risk of ~1,000 diseases and maps time-to-death over a 20-year horizon. Receives treatment scenarios from the Delphi Simulator and returns probabilistic longevity projections — enabling physicians to show patients exactly how lifestyle and treatment choices affect their lifespan.",
+            whatItDoes: [
+              "Receives scenario from Delphi Simulator (e.g., 'controlled diabetes + diet change')",
+              "Analyzes longitudinal patient record (age, conditions, labs, lifestyle)",
+              "Predicts risk across ~1,000 diseases with time horizons",
+              "Projects longevity outcome per scenario (e.g., 'live until 79' vs 'live until 76')",
+              "Returns probabilistic outcomes to Delphi Simulator for What-If comparison",
+              "Sends final contextualized output to Semantic Processor for patient communication",
+            ],
+            techStack:
+              "Modified GPT-2 (swappable to Claude) · UK Biobank training data · Nature DOI: 10.1038/s41586-025-09529-3",
+            llmCalls: "1 projection per scenario (runs within Delphi-2M model)",
+            dbTables: [
+              "risk_predictions",
+              "longevity_projections",
+              "scenario_outcomes (shared)",
+            ],
+            fileRef:
+              "Integration pending — external model (Nature publication)",
+            flow: '<span class="hl">Delphi Simulator</span> sends treatment scenario\n  │\n  ▼\n<span class="am">Ingest patient health record</span>\n  Age, conditions, labs, meds, lifestyle\n  │\n  ▼\n<span class="am">GPT-2 disease risk prediction</span>\n  ~1,000 diseases × 20-year horizon\n  │\n  ▼\n<span class="am">Longevity projection</span>\n  Probabilistic, per-scenario\n  e.g. "controlled diabetes → live until 79"\n  e.g. "uncontrolled → live until 76"\n  │\n  ├─→ Back to <span class="hl">Delphi Simulator</span> (What-If)\n  └─→ <span class="hl">Semantic Processor</span>\n       Language, education level, format\n       → Physician → Patient',
+          },
+        },
+        precision: {
+          id: "precision",
+          icon: "\u{1F3AF}",
+          title: "Precision Care",
+          subtitle: "Personalized Care Plans",
+          color: "#60a5fa",
+          x: 210,
+          y: 300,
+          radius: 44,
+          badge: "1 LLM",
+          badgeColor: "#60a5fa",
+          zone: "hipaa",
+          detail: {
+            description:
+              "Takes the Clinical Reasoning Engine's optimized treatment choice and generates a complete, personalized care plan. One Claude call synthesizes everything into an actionable PDF-ready document.",
+            whatItDoes: [
+              "Generates plan title + executive summary",
+              "Clinical goals (measurable, time-bound)",
+              "Interventions with frequency, duration, rationale",
+              "Medication details + lifestyle modifications",
+              "Follow-up schedule + evidence basis",
+            ],
+            techStack: "1× Claude API call → JSON schema → MySQL",
+            llmCalls: "1 call (generates full care plan)",
+            dbTables: ["precision_care_plans"],
+            fileRef: "server/aiService.ts:567-720",
+            flow: '<span class="hl">Optimal treatment from Clinical Reasoning Engine</span>\n  │\n  ▼\n<span class="am">Claude</span> generates:\n  ├─ Plan title & summary\n  ├─ Clinical goals\n  ├─ Interventions + medications\n  ├─ Lifestyle modifications\n  └─ Follow-up schedule\n  │\n  ▼\n<span class="gr">MySQL</span>: precision_care_plans\n  │\n  ▼\nAuto-triggers → <span class="ro">Safety Review Board</span>',
+          },
+        },
+        safety: {
+          id: "safety",
+          icon: "\u2705",
+          title: "Safety Review",
+          subtitle: "Digital Verification Gate",
+          color: "#fb923c",
+          x: -160,
+          y: 320,
+          radius: 44,
+          badge: "1 LLM",
+          badgeColor: "#fb923c",
+          zone: "hipaa",
+          detail: {
+            description:
+              "Final safety checkpoint before any care plan exits the system. Claude checks for drug interactions, allergy cross-reactivity, dosage errors, and guideline compliance.",
+            whatItDoes: [
+              "Drug-drug interaction screening",
+              "Allergy cross-reactivity detection",
+              "Dosage validation (weight, age, renal function)",
+              "Guideline compliance checks (ADA, JNC, etc.)",
+              "Verdict: approved / flagged / rejected",
+            ],
+            techStack: "1× Claude API call → JSON schema → MySQL",
+            llmCalls: "1 call (auto-triggered by Precision Care)",
+            dbTables: ["safety_reviews"],
+            fileRef: "server/aiService.ts:752-858",
+            flow: '<span class="hl">Precision Care Plan</span> (auto-triggered)\n  │\n  ▼\n<span class="am">Claude</span> checks:\n  ├─ Drug-drug interactions\n  ├─ Allergy cross-reactivity\n  ├─ Dosage vs weight/age/renal\n  └─ Guideline compliance\n  │\n  ▼\nVerdict: ✅ Approved / ⚠️ Flagged / ❌ Rejected\n  │\n  ▼\n<span class="gr">MySQL</span>: safety_reviews\n  │\n  ▼\nApproved plan → <span class="ro">Exit Control</span> → Physician',
+          },
+        },
+        marketplace: {
+          id: "marketplace",
+          icon: "\u{1F504}",
+          title: "Marketplace",
+          subtitle: "Protocol & Feedback Engine",
+          color: "#34d399",
+          x: -400,
+          y: 100,
+          radius: 44,
+          badge: "LEARN",
+          badgeColor: "#34d399",
+          zone: "hipaa",
+          detail: {
+            description:
+              "The protocol marketplace and outcome feedback engine. Physicians publish protocols, patients access them, outcomes are tracked, and real-world data feeds back into the Clinical Reasoning Engine. Switch to the Marketplace view for the full protocol lifecycle diagram.",
+            whatItDoes: [
+              "Protocol publishing and licensing (DRB-approved)",
+              "Outcome recording (symptom improvement, adverse events)",
+              "Tracks attribution confidence and time-to-outcome",
+              "Feeds into Clinical Reasoning Engine's updateTreatmentPolicy()",
+              "Revenue split: Creator 40% / Platform 30% / DRB 20% / Treating 10%",
+              "Switch to Marketplace view → for full lifecycle diagram",
+            ],
+            techStack:
+              "tRPC → MySQL → triggers Clinical Reasoning Engine policy update",
+            llmCalls:
+              "1 indirectly (via Clinical Reasoning Engine policy update)",
+            dbTables: ["patient_outcomes", "clinical_outcomes"],
+            fileRef: "server/routers.ts:3635-3678",
+            flow: '<span class="hl">Two functions:</span>\n\n<span class="gd">1. Protocol Marketplace</span>\n  Physicians publish DRB-approved protocols\n  Two revenue paths:\n  • Physician direct ($697-$997)\n  • Patient access ($20-$50/protocol)\n\n<span class="gd">2. Outcome Feedback Loop</span>\n  Patient returns weeks/months later\n  Physician records outcomes\n  → <span class="am">Clinical Reasoning Engine</span>.updateTreatmentPolicy()\n  → Confidence scores adjust\n  → Next similar patient gets\n     <span class="gr">better recommendations</span>\n\n<span class="hl">Switch to Marketplace view</span>\nfor the full protocol lifecycle →',
+          },
+        },
+        llm: {
+          id: "llm",
+          icon: "\u2728",
+          title: "Claude",
+          subtitle: "Anthropic Clinical Reasoning Engine",
+          color: "#d4a017",
+          x: 0,
+          y: -100,
+          radius: 68,
+          badge: "9-14 CALLS",
+          badgeColor: "#d4a017",
+          zone: "hipaa",
+          detail: {
+            description:
+              "The central reasoning engine powering the entire Delphica system. Every AI module routes through Claude (Anthropic). Starting with Claude — architecture supports migration to alternative LLM providers as a configuration-level change, not a rebuild.",
+            whatItDoes: [
+              "Central hub — all 5 AI modules route through this",
+              "JSON schema enforcement via prompt injection",
+              "9-14 LLM calls per patient encounter",
+              "Supports temperature, max_tokens, model overrides",
+              "Currently: claude-sonnet-4-20250514",
+              "Estimated cost per encounter: < $0.50",
+            ],
+            techStack: "@anthropic-ai/sdk → Claude → OpenAI-compat wrapper",
+            llmCalls: "Central hub — all other modules route through this",
+            dbTables: ["None — pure API wrapper"],
+            fileRef: "server/_core/llm.ts (88 lines)",
+            flow: '<span class="gd">Delphica\'s reasoning backbone</span>\n\nLLM Call Map per encounter:\n\n  <span class="hl">Semantic Processor</span> ── 3 calls\n  <span class="am">Clinical Reasoning Engine</span> ─────── 2-4 calls\n  <span class="ro">Delphi Simulator</span> ─── 2-5 calls\n  <span class="hl">Precision Care</span> ────── 1 call\n  <span class="am">Safety Review</span> ──────── 1 call\n\n  Total: <span class="gd">9-14 LLM calls</span>\n  At ~$2/million tokens:\n  Est. cost per encounter: <span class="gr">< $0.50</span>\n\n<span class="hl">Architecture note:</span>\n  Starting with Anthropic\'s Claude.\n  Migration to alternative LLM providers\n  is a configuration-level change,\n  not a rebuild.',
+          },
+        },
+        db: {
+          id: "db",
+          icon: "\u{1F5C4}\uFE0F",
+          title: "MySQL + Drizzle",
+          subtitle: "Persistent State Layer",
+          color: "#34d399",
+          x: 50,
+          y: 440,
+          radius: 40,
+          badge: "25+ TBL",
+          badgeColor: "#34d399",
+          zone: "hipaa",
+          detail: {
+            description:
+              "MySQL database accessed through Drizzle ORM. Stores everything: patients, sessions, AI outputs, safety reviews, outcomes. Running in Docker (physician-portal-mysql).",
+            whatItDoes: [
+              "Patient demographics + medical history",
+              "Clinical sessions + SOAP notes",
+              "AI-generated treatment recommendations",
+              "Simulation scenarios + predicted outcomes",
+              "Precision care plans + safety reviews",
+              "Patient outcomes (feedback loop data)",
+              "Knowledge base entries + usage tracking",
+            ],
+            techStack:
+              "MySQL 8.0 (Docker) + Drizzle ORM + drizzle-kit migrations",
+            llmCalls: "None — pure storage",
+            dbTables: [
+              "patients",
+              "clinical_sessions",
+              "treatment_recommendations",
+              "causal_analyses",
+              "simulation_scenarios",
+              "precision_care_plans",
+              "safety_reviews",
+              "patient_outcomes",
+              "...and 17 more",
+            ],
+            fileRef: "drizzle/schema.ts + server/db.ts",
+            flow: '<span class="hl">25+ tables</span> organized by domain:\n\n<span class="gr">Clinical Data:</span>\n  patients, clinical_sessions,\n  diagnosis_entries, treatment_entries\n\n<span class="am">AI Decisions:</span>\n  treatment_recommendations,\n  causal_analyses, causal_insights,\n  precision_care_plans\n\n<span class="ro">Simulation:</span>\n  simulation_scenarios,\n  scenario_outcomes,\n  scenario_comparisons\n\n<span class="hl">Feedback:</span>\n  patient_outcomes,\n  clinical_outcomes,\n  coding_quality_metrics',
+          },
+        },
+        qa: {
+          id: "qa",
+          icon: "\u{1F4CA}",
+          title: "QA Analytics",
+          subtitle: "Quality & Performance",
+          color: "#fb923c",
+          x: -360,
+          y: 280,
+          radius: 36,
+          badge: "AUDIT",
+          badgeColor: "#fb923c",
+          zone: "hipaa",
+          detail: {
+            description:
+              "Tracks coding quality and physician performance analytics. Monitors ICD-10/CPT accuracy, workflow efficiency, and generates performance reports.",
+            whatItDoes: [
+              "analyzeQuality() → Evaluate coding accuracy",
+              "getPhysicianMetrics() → Per-physician performance",
+              "getPerformanceAnalytics() → System-wide dashboard",
+              "Tracks coding accuracy trends over time",
+            ],
+            techStack: "tRPC endpoints → MySQL aggregation queries",
+            llmCalls: "None — pure analytics",
+            dbTables: [
+              "coding_quality_metrics",
+              "physician_performance_analytics",
+            ],
+            fileRef: "server/routers.ts — qa.analyzeQuality",
+            flow: '<span class="hl">System Monitors:</span>\n  │\n  ├─ ICD-10 coding accuracy %\n  ├─ CPT coding accuracy %\n  ├─ Recommendation acceptance rate\n  ├─ Safety review pass rate\n  └─ Avg workflow completion time\n  │\n  ▼\n<span class="gr">MySQL</span>: aggregated metrics\n  │\n  ▼\n<span class="am">Dashboard</span>: charts + trends',
+          },
+        },
+      };
+
+      const SYSTEM_CONNECTIONS = [
+        // Physician → Entry Control → System
+        {
+          from: "physician",
+          to: "entry",
+          label: "PDF / voice → VirusTotal scan",
+          color: "#e2e8f0",
+          type: "data",
+        },
+        {
+          from: "entry",
+          to: "dao",
+          label: "sanitized input",
+          color: "#fb7185",
+          type: "data",
+        },
+        // System pipeline
+        {
+          from: "dao",
+          to: "semantic",
+          label: "clinical notes",
+          color: "#60a5fa",
+          type: "data",
+        },
+        {
+          from: "semantic",
+          to: "causal",
+          label: "medical codes",
+          color: "#a78bfa",
+          type: "data",
+        },
+        {
+          from: "causal",
+          to: "delphi",
+          label: "analysis + scenarios",
+          color: "#a78bfa",
+          type: "data",
+        },
+        {
+          from: "delphi",
+          to: "causal",
+          label: "simulation results",
+          color: "#a78bfa",
+          type: "feedback",
+          dash: true,
+        },
+        // Delphi ↔ Delphi-2M
+        {
+          from: "delphi",
+          to: "delphi2m",
+          label: "scenarios → longevity projection",
+          color: "#c084fc",
+          type: "data",
+        },
+        {
+          from: "delphi2m",
+          to: "delphi",
+          label: "probabilistic outcomes ← 20yr",
+          color: "#a78bfa",
+          type: "feedback",
+          dash: true,
+        },
+        {
+          from: "delphi2m",
+          to: "semantic",
+          label: "contextualized → patient output",
+          color: "#c084fc",
+          type: "data",
+          thin: true,
+          dash: true,
+        },
+        {
+          from: "causal",
+          to: "precision",
+          label: "optimal treatment",
+          color: "#60a5fa",
+          type: "data",
+        },
+        {
+          from: "precision",
+          to: "safety",
+          label: "care plan (auto)",
+          color: "#fb923c",
+          type: "trigger",
+        },
+        // Safety → Exit → Physician
+        {
+          from: "safety",
+          to: "exit",
+          label: "approved plan",
+          color: "#fb7185",
+          type: "data",
+        },
+        {
+          from: "exit",
+          to: "physician",
+          label: "PDF download",
+          color: "#e2e8f0",
+          type: "data",
+        },
+        // Marketplace loop
+        {
+          from: "safety",
+          to: "marketplace",
+          label: "approved plan",
+          color: "#34d399",
+          type: "data",
+        },
+        {
+          from: "marketplace",
+          to: "causal",
+          label: "outcome feedback",
+          color: "#34d399",
+          type: "feedback",
+          dash: true,
+        },
+        // Patient Portal connections
+        {
+          from: "exit",
+          to: "patportal",
+          label: "care plan + schedule",
+          color: "#f472b6",
+          type: "data",
+        },
+        {
+          from: "patportal",
+          to: "patient",
+          label: "check-ins / reminders / labs",
+          color: "#f472b6",
+          type: "data",
+        },
+        {
+          from: "patient",
+          to: "patportal",
+          label: "symptoms / adherence / questions",
+          color: "#e2e8f0",
+          type: "data",
+          dash: true,
+        },
+        {
+          from: "patportal",
+          to: "entry",
+          label: "packaged data → physician review",
+          color: "#f472b6",
+          type: "feedback",
+          thin: true,
+          dash: true,
+        },
+        {
+          from: "marketplace",
+          to: "entry",
+          label: "protocol access",
+          color: "#34d399",
+          type: "data",
+          thin: true,
+          dash: true,
+        },
+        // LLM connections
+        {
+          from: "semantic",
+          to: "llm",
+          label: "3 calls",
+          color: "#d4a017",
+          type: "api",
+          thin: true,
+        },
+        {
+          from: "causal",
+          to: "llm",
+          label: "2-4 calls",
+          color: "#d4a017",
+          type: "api",
+          thin: true,
+        },
+        {
+          from: "delphi",
+          to: "llm",
+          label: "2-5 calls",
+          color: "#d4a017",
+          type: "api",
+          thin: true,
+        },
+        {
+          from: "precision",
+          to: "llm",
+          label: "1 call",
+          color: "#d4a017",
+          type: "api",
+          thin: true,
+        },
+        {
+          from: "safety",
+          to: "llm",
+          label: "1 call",
+          color: "#d4a017",
+          type: "api",
+          thin: true,
+        },
+        // DB connections
+        {
+          from: "dao",
+          to: "db",
+          label: "",
+          color: "#34d399",
+          type: "db",
+          thin: true,
+        },
+        {
+          from: "causal",
+          to: "db",
+          label: "",
+          color: "#34d399",
+          type: "db",
+          thin: true,
+        },
+        {
+          from: "precision",
+          to: "db",
+          label: "",
+          color: "#34d399",
+          type: "db",
+          thin: true,
+        },
+        {
+          from: "safety",
+          to: "db",
+          label: "",
+          color: "#34d399",
+          type: "db",
+          thin: true,
+        },
+        {
+          from: "marketplace",
+          to: "db",
+          label: "",
+          color: "#34d399",
+          type: "db",
+          thin: true,
+        },
+        {
+          from: "delphi",
+          to: "db",
+          label: "",
+          color: "#34d399",
+          type: "db",
+          thin: true,
+        },
+        {
+          from: "delphi2m",
+          to: "db",
+          label: "",
+          color: "#34d399",
+          type: "db",
+          thin: true,
+        },
+        // QA
+        {
+          from: "qa",
+          to: "db",
+          label: "",
+          color: "#34d399",
+          type: "db",
+          thin: true,
+        },
+      ];
+
+      // ═══════════════════════════════════════════════════════════════
+      // MARKETPLACE VIEW — MODULE DEFINITIONS
+      // ═══════════════════════════════════════════════════════════════
+
+      const MARKETPLACE_MODULES = {
+        creator: {
+          id: "creator",
+          icon: "\u{1F468}\u200D\u2695\uFE0F",
+          title: "Creator Physician",
+          subtitle: "Develops & Submits Protocol",
+          color: "#e2e8f0",
+          x: 0,
+          y: -380,
+          radius: 50,
+          badge: "HUMAN",
+          badgeColor: "#e2e8f0",
+          detail: {
+            description:
+              "A physician who has developed a clinical protocol through 100+ patient refinements. Submits the protocol to the Digital Review Board for peer validation.",
+            whatItDoes: [
+              "Develops protocol from clinical practice",
+              "Documents evidence citations + target conditions",
+              "Specifies dosing, duration, monitoring",
+              "Submits to DRB for peer review",
+              "Earns 40% ongoing royalties on sales",
+            ],
+            techStack: "Web portal submission form",
+            llmCalls: "None — human actor",
+            dbTables: ["protocol_submissions"],
+            fileRef: "Marketplace — Creator Flow",
+            flow: '<span class="gd">Creator Journey:</span>\n\n1. Physician refines protocol across 100+ patients\n2. Documents evidence, dosing, monitoring\n3. Submits to Digital Review Board\n4. If approved → protocol is minted\n5. Earns <span class="gr">40% ongoing royalties</span>\n   on every sale',
+          },
+        },
+        drb: {
+          id: "drb",
+          icon: "\u{1F3DB}\uFE0F",
+          title: "Digital Review Board",
+          subtitle: "Board-Governed Peer Review",
+          color: "#a78bfa",
+          x: -200,
+          y: -180,
+          radius: 56,
+          badge: "REVIEW",
+          badgeColor: "#a78bfa",
+          detail: {
+            description:
+              "The quality gate. Board-governed (NOT a DAO — clarified March 2). Practicing physicians validate safety, efficacy evidence, and clinical completeness. Validators paid flat fee ($150-$250) regardless of outcome to eliminate approval bias.",
+            whatItDoes: [
+              "Safety validation",
+              "Efficacy evidence review",
+              "Clinical completeness check",
+              "HIPAA compliance verification",
+              "Malpractice compatibility review",
+              "Flat fee per review ($150-$250) — eliminates bias",
+            ],
+            techStack: "Board governance — physician-only membership",
+            llmCalls: "None — human review process",
+            dbTables: ["drb_reviews", "drb_validators"],
+            fileRef: "Marketplace — DRB Process",
+            flow: '<span class="gd">Peer Review Process:</span>\n\n<span class="hl">Governance:</span> Board of physicians\n<span class="hl">Controls:</span> Reputational\n<span class="ro">NOT a DAO</span> (clarified 3/2/26)\n\nReview checks:\n  ├─ Safety validation\n  ├─ Efficacy evidence\n  ├─ Clinical completeness\n  ├─ HIPAA compliance\n  └─ Malpractice compatibility\n\nValidators paid <span class="gr">$150-$250</span>\nflat fee per review\n(regardless of approve/reject\n → eliminates approval bias)',
+          },
+        },
+        minting: {
+          id: "minting",
+          icon: "\u26D3\uFE0F",
+          title: "Protocol Minting",
+          subtitle: "Immutable After Approval",
+          color: "#60a5fa",
+          x: 200,
+          y: -180,
+          radius: 46,
+          badge: "ERC-721",
+          badgeColor: "#60a5fa",
+          detail: {
+            description:
+              "Approved protocols are minted as ERC-721 tokens on Ethereum L2 for provenance tracking. Content is stored on IPFS with client-side encryption. Once minted, protocols CANNOT be edited. Updates require a new protocol through fresh DRB review.",
+            whatItDoes: [
+              "ERC-721 token for provenance (Ethereum L2)",
+              "IPFS storage with client-side encryption",
+              "Immutable after minting — cannot be edited",
+              "Updates = new protocol → fresh DRB review",
+              "Platform-managed wallets (no MetaMask)",
+              "No money on-chain — Stripe only",
+            ],
+            techStack: "Ethereum L2 + IPFS + Stripe Connect",
+            llmCalls: "None — blockchain + storage",
+            dbTables: ["protocols", "protocol_versions"],
+            fileRef: "Marketplace — Minting Layer",
+            flow: '<span class="ro">⚠️ IMMUTABILITY RULE:</span>\n\nOnce approved by DRB, a protocol\n<span class="ro">CANNOT be edited.</span>\n\nAny update requires:\n  1. Create NEW protocol\n  2. Full DRB review cycle\n  3. New mint\n\n<span class="gd">Generation Limit:</span>\n  Protocol lineage dies after\n  <span class="am">5 generations</span> of remixes\n  Prevents infinite dilution\n\n<span class="hl">Tech stack:</span>\n  • Ethereum L2 (provenance only)\n  • IPFS (encrypted content)\n  • Stripe Connect (all payments)\n  • No MetaMask required',
+          },
+        },
+        listing: {
+          id: "listing",
+          icon: "\u{1F6D2}",
+          title: "Marketplace Listing",
+          subtitle: "Two Revenue Paths",
+          color: "#34d399",
+          x: 0,
+          y: 50,
+          radius: 50,
+          badge: "SALES",
+          badgeColor: "#34d399",
+          detail: {
+            description:
+              "Approved protocols are listed with two purchase paths: Physician Direct ($697-$997 one-time) and Patient Access ($20-$50 per protocol). Patient access is where volume lives — target 70% of revenue by Year 5.",
+            whatItDoes: [
+              "Path A: Physician Direct ($697-$997 one-time license)",
+              "Path B: Patient Access ($20-$50 per protocol)",
+              "MedChi CME credit potential for Path A",
+              "150-300 patients × 2-3 protocols/year = volume",
+              "Target: 30% physician / 70% patient by Year 5",
+            ],
+            techStack: "Stripe Connect — all payments",
+            llmCalls: "None — commerce layer",
+            dbTables: ["protocol_licenses", "transactions"],
+            fileRef: "Marketplace — Commerce",
+            flow: '<span class="gd">Two Purchase Paths:</span>\n\n<span class="hl">PATH A — Physician Direct</span>\n  $697-$997 one-time\n  CME-equivalent investment\n  MedChi CME credit potential\n  Target: 30% of revenue\n\n<span class="hl">PATH B — Patient Access</span>\n  $20-$50 per protocol\n  Treating physician registers patient\n  150-300 patients × 2-3 protocols/yr\n  = hundreds of purchases per physician\n  Target: <span class="gr">70% of revenue by Year 5</span>\n\nThis is where volume lives.',
+          },
+        },
+        revenue: {
+          id: "revenue",
+          icon: "\u{1F4B0}",
+          title: "Revenue Split",
+          subtitle: "Via Stripe Connect",
+          color: "#34d399",
+          x: -300,
+          y: 50,
+          radius: 44,
+          badge: "SPLIT",
+          badgeColor: "#34d399",
+          detail: {
+            description:
+              "All payments processed through Stripe Connect. No smart contracts touch money. Blockchain is used exclusively for provenance.",
+            whatItDoes: [
+              "Creator: 40% — developed the protocol",
+              "Platform (ICCare): 30% — infrastructure + ecosystem",
+              "DRB: 20% — peer review + governance",
+              "Treating Physician: 10% — earned by reporting outcomes",
+            ],
+            techStack: "Stripe Connect — instant splits",
+            llmCalls: "None — payment layer",
+            dbTables: ["revenue_splits", "payouts"],
+            fileRef: "Marketplace — Revenue",
+            flow: '<span class="gd">Revenue Split:</span>\n\n  ┌──────────────────┐\n  │ Creator      40% │ Developed the protocol\n  │ Platform     30% │ Infra + marketing\n  │ DRB          20% │ Peer review\n  │ Treating MD  10% │ Outcome reporting\n  └──────────────────┘\n\nAll via <span class="hl">Stripe Connect</span>\nNo smart contracts touch money.\nBlockchain = provenance only.',
+          },
+        },
+        portal: {
+          id: "portal",
+          icon: "\u{1F4F1}",
+          title: "Patient Portal",
+          subtitle: "$15/month — Behavioral Moat",
+          color: "#60a5fa",
+          x: 300,
+          y: 50,
+          radius: 44,
+          badge: "$15/mo",
+          badgeColor: "#60a5fa",
+          detail: {
+            description:
+              "The patient-facing accountability layer. $15/month. Features: daily check-ins, progress charts, push notifications, physician alerts when adherence drops. This is the behavioral moat — patients pay for accountability, not information.",
+            whatItDoes: [
+              "Daily check-ins and streaks",
+              "Progress charts",
+              "Push notifications",
+              "Physician alerts (adherence < 70%)",
+              "Lab/EHR integration (Month 15+)",
+              "Mobile app (Month 15+)",
+            ],
+            techStack: "Web + Mobile (React Native, Month 15+)",
+            llmCalls: "None — patient-facing UI",
+            dbTables: [
+              "patient_portal_sessions",
+              "check_ins",
+              "adherence_scores",
+            ],
+            fileRef: "Marketplace — Patient Portal",
+            flow: '<span class="gd">Patient Portal ($15/mo)</span>\n\nRevenue split:\n  Platform 30% / Practitioner 40% / Creator 30%\n\nFeatures:\n  ├─ Daily check-ins + streaks\n  ├─ Progress charts\n  ├─ Push notifications\n  ├─ <span class="ro">Alert</span> if adherence < 70%\n  └─ Lab integration (Month 15+)\n\n<span class="hl">Behavioral moat:</span>\nComparable to Noom ($60/mo)\nand Headspace ($13/mo).\nPatients pay for accountability.',
+          },
+        },
+        outcomes: {
+          id: "outcomes",
+          icon: "\u{1F4CA}",
+          title: "Outcome Tracking",
+          subtitle: "Real-World Evidence",
+          color: "#d4a017",
+          x: 0,
+          y: 280,
+          radius: 48,
+          badge: "LEARN",
+          badgeColor: "#d4a017",
+          detail: {
+            description:
+              "The flywheel engine. Real patient outcomes feed back into the Clinical Reasoning Engine, making recommendations smarter over time. The model stays the same — the CONTEXT gets smarter.",
+            whatItDoes: [
+              "Treating physician reports outcomes",
+              "Patient reports adherence + symptoms",
+              "Data feeds into Clinical Reasoning Engine learning loop",
+              "Confidence scores adjust over time",
+              "Next similar patient gets better recommendations",
+            ],
+            techStack: "tRPC → MySQL → Clinical Reasoning Engine policy update",
+            llmCalls: "1 indirectly (via Clinical Reasoning Engine)",
+            dbTables: ["patient_outcomes", "clinical_outcomes"],
+            fileRef: "Marketplace — Outcome Loop",
+            flow: '<span class="gd">The Flywheel:</span>\n\nPatient returns weeks/months later\n  │\n  ▼\nPhysician records outcome:\n  ├─ Improvement / adverse / stable\n  ├─ Severity + measurements\n  └─ Attribution confidence\n  │\n  ▼\n<span class="am">Clinical Reasoning Engine</span>.updateTreatmentPolicy()\n  Adjusts confidence scores\n  │\n  ▼\nNext similar patient gets\n<span class="gr">better recommendations</span>\n\n<span class="hl">"The model is the same.</span>\n<span class="hl"> The CONTEXT gets smarter."</span>',
+          },
+        },
+        remix: {
+          id: "remix",
+          icon: "\u{1F500}",
+          title: "Protocol Remix",
+          subtitle: "5-Generation Limit",
+          color: "#a78bfa",
+          x: -300,
+          y: 280,
+          radius: 42,
+          badge: "5 GEN",
+          badgeColor: "#a78bfa",
+          detail: {
+            description:
+              "Based on outcome data, a physician may fork (remix) an existing protocol. The remix is a NEW protocol requiring fresh DRB review. Lineage expires after 5 generations to prevent infinite dilution.",
+            whatItDoes: [
+              "Fork existing protocol",
+              "Modify based on new evidence/outcomes",
+              "Submit as NEW protocol to DRB",
+              "Full review cycle required",
+              "5-generation limit on lineage",
+              "Loops back to submission",
+            ],
+            techStack: "Protocol versioning + DRB resubmission",
+            llmCalls: "None — human-initiated",
+            dbTables: ["protocol_versions", "remix_lineage"],
+            fileRef: "Marketplace — Remix System",
+            flow: '<span class="gd">Protocol Remix:</span>\n\nBased on outcome data, physician:\n  1. Forks existing protocol\n  2. Modifies with new evidence\n  3. Submits as NEW protocol\n  4. Full DRB review cycle\n  5. New mint if approved\n\n<span class="ro">GENERATION LIMIT: 5 remixes max</span>\nAfter 5 generations, lineage expires.\nPrevents infinite dilution of\noriginal creator\'s work.\n\n→ Loops back to <span class="hl">Protocol Submission</span>',
+          },
+        },
+      };
+
+      const MARKETPLACE_CONNECTIONS = [
+        {
+          from: "creator",
+          to: "drb",
+          label: "submits protocol",
+          color: "#e2e8f0",
+          type: "data",
+        },
+        {
+          from: "drb",
+          to: "minting",
+          label: "approved",
+          color: "#34d399",
+          type: "data",
+        },
+        {
+          from: "minting",
+          to: "listing",
+          label: "listed for sale",
+          color: "#60a5fa",
+          type: "data",
+        },
+        {
+          from: "listing",
+          to: "revenue",
+          label: "purchase",
+          color: "#34d399",
+          type: "data",
+        },
+        {
+          from: "listing",
+          to: "portal",
+          label: "patient access",
+          color: "#60a5fa",
+          type: "data",
+        },
+        {
+          from: "portal",
+          to: "outcomes",
+          label: "adherence + data",
+          color: "#d4a017",
+          type: "data",
+        },
+        {
+          from: "revenue",
+          to: "outcomes",
+          label: "treating MD reports",
+          color: "#d4a017",
+          type: "data",
+          thin: true,
+        },
+        {
+          from: "outcomes",
+          to: "remix",
+          label: "evidence for update",
+          color: "#a78bfa",
+          type: "data",
+        },
+        {
+          from: "remix",
+          to: "creator",
+          label: "new submission",
+          color: "#a78bfa",
+          type: "feedback",
+          dash: true,
+        },
+        {
+          from: "drb",
+          to: "creator",
+          label: "rejected + feedback",
+          color: "#fb7185",
+          type: "feedback",
+          dash: true,
+          thin: true,
+        },
+      ];
+
+      // ═══════════════════════════════════════════════════════════════
+      // RENDERING ENGINE
+      // ═══════════════════════════════════════════════════════════════
+
+      const canvas = document.getElementById("canvas");
+
+      function updateViewBox() {
+        const w = window.innerWidth,
+          h = window.innerHeight;
+        const vw = w / zoom,
+          vh = h / zoom;
+        canvas.setAttribute(
+          "viewBox",
+          `${viewX - vw / 2} ${viewY - vh / 2} ${vw} ${vh}`,
+        );
+      }
+      function zoomIn() {
+        zoom = Math.min(zoom * 1.25, 4);
+        updateViewBox();
+      }
+      function zoomOut() {
+        zoom = Math.max(zoom / 1.25, 0.2);
+        updateViewBox();
+      }
+      function resetView() {
+        zoom = 0.7;
+        viewX = 0;
+        viewY = currentView === "system" ? 0 : 0;
+        updateViewBox();
+      }
+
+      // Pan
+      canvas.addEventListener("mousedown", (e) => {
+        if (
+          e.target === canvas ||
+          e.target.tagName === "line" ||
+          e.target.tagName === "path" ||
+          e.target.tagName === "rect" ||
+          e.target.tagName === "ellipse"
+        ) {
+          dragging = true;
+          dragStartX = e.clientX;
+          dragStartY = e.clientY;
+        }
+      });
+      window.addEventListener("mousemove", (e) => {
+        if (!dragging) return;
+        viewX -= (e.clientX - dragStartX) / zoom;
+        viewY -= (e.clientY - dragStartY) / zoom;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        updateViewBox();
+      });
+      window.addEventListener("mouseup", () => {
+        dragging = false;
+      });
+      canvas.addEventListener(
+        "wheel",
+        (e) => {
+          e.preventDefault();
+          e.deltaY < 0 ? zoomIn() : zoomOut();
+        },
+        { passive: false },
+      );
+
+      // ─── SVG helpers ───
+      function tc(color) {
+        if (isLight() && color === "#e2e8f0") return "#334155";
+        if (isLight() && color === "#1e293b") return "#0f172a";
+        if (!isLight() && color === "#1e293b") return "#334155";
+        return color;
+      }
+      function createSVG(tag, attrs) {
+        const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
+        for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+        return el;
+      }
+
+      // ─── Background watermark logo ───
+      function drawWatermark() {
+        const wmGroup = createSVG("g", { id: "watermark" });
+        const img = createSVG("image", {
+          href: "Delphica_logo.png",
+          x: -400,
+          y: -450,
+          width: 800,
+          height: 800,
+          opacity: isLight() ? "0.10" : "0.15",
+          "pointer-events": "none",
+        });
+        wmGroup.appendChild(img);
+        canvas.appendChild(wmGroup);
+      }
+
+      // ─── Zone detail definitions ───
+      const ZONE_DETAILS = {
+        hipaa: {
+          icon: "\u{1F512}",
+          title: "HIPAA Envelope",
+          subtitle: "Zone 1 — Innermost Protected Perimeter",
+          color: "#60a5fa",
+          description:
+            "The HIPAA Envelope is the innermost security zone where all Protected Health Information (PHI) lives and all clinical AI processing occurs. Every component inside this boundary operates under a signed Business Associate Agreement (BAA). No raw patient data ever leaves this zone without passing through the de-identification layer at the Air Gap boundary.",
+          whatItDoes: [
+            "Houses all PHI — patient records, clinical sessions, AI outputs, care plans",
+            "All 6 AI modules (Semantic Processor, Clinical Reasoning Engine, Delphi Simulator, Delphi-2M, Precision Care, Safety Review) execute inside this boundary",
+            "MySQL database with 25+ tables — all persistent state lives here",
+            "BAA signed with every vendor touching this zone (Anthropic, hosting provider)",
+            "AES-256 encryption at rest for all stored data",
+            "TLS 1.3 encryption in transit for all internal API calls",
+            "VPC network isolation — no public internet access from within",
+            "7-year audit log retention (HIPAA requirement)",
+            "Role-based access control (RBAC) on all endpoints",
+          ],
+          techStack:
+            "AWS VPC • MySQL 8.0 (encrypted) • Node.js tRPC • BAA with Anthropic",
+          flow: '<span class="gd">What lives inside Zone 1:</span>\n\n<span class="hl">AI Pipeline:</span>\n  Intake → Semantic Processor → Clinical Reasoning Engine\n  → Delphi Simulator ↔ Delphi-2M\n  → Precision Care → Safety Review Board\n\n<span class="hl">Data Layer:</span>\n  MySQL (25+ tables, AES-256 at rest)\n  All patient records, sessions, outcomes\n\n<span class="hl">Central Engine:</span>\n  Claude (9-14 API calls per encounter)\n  All LLM calls stay within BAA boundary\n\n<span class="am">Security controls:</span>\n  ├─ BAA with all vendors\n  ├─ AES-256 at rest\n  ├─ TLS 1.3 in transit\n  ├─ VPC isolation (no public internet)\n  ├─ RBAC on all endpoints\n  └─ 7-year audit log retention\n\n<span class="ro">Rule:</span> Nothing leaves without\npassing through <span class="ro">Air Gap</span> de-identification.',
+        },
+        airgap: {
+          icon: "\u{1F6E1}\uFE0F",
+          title: "Air Gap",
+          subtitle: "Zone 2 — Controlled Boundary Membrane",
+          color: "#fb7185",
+          description:
+            "The Air Gap is the controlled membrane between the outside world and the HIPAA Envelope. Think of it as a two-gate checkpoint: nothing enters without being scanned by VirusTotal (153 virus checkers), and nothing exits without being stripped of all Protected Health Information. The air gap ensures the system is defensible even if external services are compromised.",
+          whatItDoes: [
+            "ENTRY GATE: VirusTotal API scans all incoming files (153 virus checkers simultaneously)",
+            "ENTRY GATE: Single-use storage containers — data lands in a disposable container, gets checked, container is destroyed",
+            "ENTRY GATE: Malware detection for PDFs, voice files, lab results, any uploaded content",
+            "EXIT GATE: De-identification middleware strips all PHI from outbound data",
+            "EXIT GATE: Names, DOB, SSN, MRNs, geographic identifiers — all removed",
+            "EXIT GATE: Applies to exported reports, analytics, external API responses, care plan PDFs",
+            "No direct network path between inside and outside — all traffic routes through gates",
+            "Both gates are stateless — no data persists at the boundary",
+            "Independent of LLM provider compliance — we strip PHI ourselves",
+          ],
+          techStack:
+            "VirusTotal API (entry) • De-identification middleware (exit) • Stateless gates",
+          flow: '<span class="gd">Two-Gate Architecture:</span>\n\n<span class="am">ENTRY CONTROL</span> (inbound)\n  External file arrives\n  │\n  ▼\n  VirusTotal API — 153 scanners\n  99.8% detection rate\n  │\n  ▼\n  Single-use container\n  Data checked, container destroyed\n  │\n  ▼\n  <span class="gr">Sanitized data</span> → HIPAA Envelope\n\n<span class="am">EXIT CONTROL</span> (outbound)\n  Data needs to leave system\n  │\n  ▼\n  De-identification layer\n  Strips: names, DOB, SSN, MRNs,\n  geographic IDs, any unique identifier\n  │\n  ▼\n  <span class="gr">Sanitized output</span> → Edge Horizon\n\n<span class="ro">Key principle:</span>\n  We don\'t trust LLM providers\n  to handle PHI correctly.\n  We strip it <span class="hl">ourselves</span> before\n  anything crosses this boundary.',
+        },
+        edge: {
+          icon: "\u{1F310}",
+          title: "Edge Horizon",
+          subtitle: "Zone 3 — External Interaction Boundary",
+          color: "#94a3b8",
+          description:
+            "The Edge Horizon is the outermost security boundary where human actors (physicians and patients) interact with the Delphica system. No PHI is stored at this layer — it's purely a presentation and input layer. All data must pass through the Air Gap to reach the protected core. Access is via HIPAA-compliant web portals over HTTPS/TLS.",
+          whatItDoes: [
+            "Physician Portal: browser-based access to the Delphica clinical workflow",
+            "Patient Portal ($15/month): AI Avatar (11 Labs voice agent) runs check-ins, adherence tracking, lab scheduling, Q&A, and packages data for physician review",
+            "All communication over HTTPS with TLS 1.3 — encrypted in transit",
+            "No PHI stored at this layer — purely a pass-through presentation layer",
+            "Session tokens with short TTL — auto-expire after inactivity",
+            "Multi-factor authentication (MFA) for physician access",
+            "Rate limiting and DDoS protection at the edge",
+            "All uploaded files (PDFs, voice, labs) are immediately forwarded to Air Gap Entry Control",
+            "Downloaded care plans arrive pre-approved through Safety Review + de-identified where needed",
+          ],
+          techStack:
+            "HTTPS/TLS 1.3 • CDN edge • MFA • Rate limiting • Browser-based portals",
+          flow: '<span class="gd">Who lives in Zone 3:</span>\n\n<span class="hl">Physician</span> (Primary Decision Maker)\n  ├─ Uploads patient data (voice/PDF)\n  ├─ Reviews Delphi scenarios\n  ├─ Downloads approved care plans\n  ├─ Publishes protocols to Marketplace\n  └─ Reports patient outcomes\n\n<span class="hl">Patient</span> (Care Recipient)\n  ├─ Accesses portal ($15/mo)\n  ├─ Daily check-ins + streaks\n  ├─ Uploads lab results\n  └─ Receives push notifications\n\n<span class="am">Security at the edge:</span>\n  ├─ HTTPS / TLS 1.3\n  ├─ MFA for physicians\n  ├─ Short-lived session tokens\n  ├─ Rate limiting + DDoS protection\n  └─ No PHI stored at this layer\n\n<span class="ro">All data flows inward</span>\n  through the <span class="ro">Air Gap</span>\n  before reaching the system.',
+        },
+      };
+
+      // ─── Draw security zones (system view only) ───
+      function drawZones() {
+        const zoneGroup = createSVG("g", { id: "zones" });
+
+        // Zone 3: Edge Horizon — outermost
+        const edgeG = createSVG("g", {
+          class: "zone-group",
+          "data-zone": "edge",
+        });
+        const edge = createSVG("rect", {
+          x: -880,
+          y: -600,
+          width: 1760,
+          height: 1220,
+          rx: 24,
+          fill: "none",
+          stroke: isLight() ? "#64748b" : "#94a3b8",
+          "stroke-width": isLight() ? "1.5" : "1",
+          "stroke-opacity": isLight() ? "0.3" : "0.15",
+          "stroke-dasharray": "8 4",
+          class: "zone-border",
+        });
+        edgeG.appendChild(edge);
+        // Clickable hit area along the top edge
+        const edgeHit = createSVG("rect", {
+          x: -880,
+          y: -600,
+          width: 1760,
+          height: 40,
+          rx: 24,
+          class: "zone-hit",
+        });
+        edgeG.appendChild(edgeHit);
+        const edgeLabel = createSVG("text", {
+          x: 0,
+          y: -578,
+          class: "zone-label zone-label-text",
+          fill: isLight() ? "#475569" : "#94a3b8",
+          "fill-opacity": isLight() ? "0.6" : "0.3",
+          style: "pointer-events: auto; cursor: pointer;",
+        });
+        edgeLabel.textContent = "EDGE HORIZON — Zone 3";
+        edgeG.appendChild(edgeLabel);
+        edgeG.addEventListener("click", (e) => {
+          e.stopPropagation();
+          showZoneDetail("edge");
+        });
+        zoneGroup.appendChild(edgeG);
+
+        // Zone 2: Air Gap — middle boundary
+        const gapG = createSVG("g", {
+          class: "zone-group",
+          "data-zone": "airgap",
+        });
+        const gap = createSVG("rect", {
+          x: -620,
+          y: -570,
+          width: 1240,
+          height: 1140,
+          rx: 20,
+          fill: "none",
+          stroke: "#fb7185",
+          "stroke-width": isLight() ? "3" : "2.5",
+          "stroke-opacity": isLight() ? "0.4" : "0.25",
+          "stroke-dasharray": "12 6",
+          class: "zone-border",
+        });
+        gapG.appendChild(gap);
+        const gapHit = createSVG("rect", {
+          x: -620,
+          y: -570,
+          width: 1240,
+          height: 28,
+          rx: 20,
+          class: "zone-hit",
+        });
+        gapG.appendChild(gapHit);
+        const gapLabel = createSVG("text", {
+          x: 0,
+          y: -548,
+          class: "zone-label zone-label-text",
+          fill: "#fb7185",
+          "fill-opacity": isLight() ? "0.7" : "0.4",
+          style: "pointer-events: auto; cursor: pointer;",
+        });
+        gapLabel.textContent = "AIR GAP — Zone 2";
+        gapG.appendChild(gapLabel);
+        gapG.addEventListener("click", (e) => {
+          e.stopPropagation();
+          showZoneDetail("airgap");
+        });
+        zoneGroup.appendChild(gapG);
+
+        // Zone 1: HIPAA Envelope — innermost
+        const hipaaG = createSVG("g", {
+          class: "zone-group",
+          "data-zone": "hipaa",
+        });
+        const hipaa = createSVG("rect", {
+          x: -470,
+          y: -530,
+          width: 940,
+          height: 1060,
+          rx: 16,
+          fill: "#60a5fa",
+          "fill-opacity": isLight() ? "0.06" : "0.03",
+          stroke: "#60a5fa",
+          "stroke-width": isLight() ? "2.5" : "2",
+          "stroke-opacity": isLight() ? "0.35" : "0.2",
+          class: "zone-border",
+        });
+        hipaaG.appendChild(hipaa);
+        const hipaaHit = createSVG("rect", {
+          x: -470,
+          y: -530,
+          width: 940,
+          height: 24,
+          rx: 16,
+          class: "zone-hit",
+        });
+        hipaaG.appendChild(hipaaHit);
+        const hipaaLabel = createSVG("text", {
+          x: 0,
+          y: -510,
+          class: "zone-label zone-label-text",
+          fill: isLight() ? "#2563eb" : "#60a5fa",
+          "fill-opacity": isLight() ? "0.7" : "0.5",
+          style: "pointer-events: auto; cursor: pointer;",
+        });
+        hipaaLabel.textContent = "HIPAA ENVELOPE — Zone 1";
+        hipaaG.appendChild(hipaaLabel);
+        hipaaG.addEventListener("click", (e) => {
+          e.stopPropagation();
+          showZoneDetail("hipaa");
+        });
+        zoneGroup.appendChild(hipaaG);
+
+        // HIPAA compliance note
+        const compNote = createSVG("text", {
+          x: 0,
+          y: 520,
+          "text-anchor": "middle",
+          "font-size": "9",
+          fill: isLight() ? "#2563eb" : "#60a5fa",
+          "fill-opacity": isLight() ? "0.5" : "0.35",
+          "font-family": "Inter, sans-serif",
+        });
+        compNote.textContent =
+          "BAA • De-identification • VPC • AES-256 • 7yr Audit Logs";
+        zoneGroup.appendChild(compNote);
+
+        canvas.appendChild(zoneGroup);
+      }
+
+      // ─── Draw connections ───
+      function drawConnections(connections, modules) {
+        const connGroup = createSVG("g", { id: "connections" });
+        connections.forEach((conn, i) => {
+          const from = modules[conn.from],
+            to = modules[conn.to];
+          if (!from || !to) return;
+          const dx = to.x - from.x,
+            dy = to.y - from.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const nx = dx / dist,
+            ny = dy / dist;
+          const x1 = from.x + nx * (from.radius + 6),
+            y1 = from.y + ny * (from.radius + 6);
+          const x2 = to.x - nx * (to.radius + 6),
+            y2 = to.y - ny * (to.radius + 6);
+          const mx = (x1 + x2) / 2,
+            my = (y1 + y2) / 2;
+          const perpX = -(y2 - y1) * 0.1,
+            perpY = (x2 - x1) * 0.1;
+          const cx = mx + perpX,
+            cy = my + perpY;
+
+          const path = createSVG("path", {
+            d: `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`,
+            class: "connection",
+            stroke: tc(conn.color),
+            "stroke-dasharray": conn.dash ? "6 4" : "none",
+            "stroke-width": conn.thin ? "1.5" : "2",
+            "data-from": conn.from,
+            "data-to": conn.to,
+            id: `conn-${i}`,
+          });
+          connGroup.appendChild(path);
+          if (conn.label) {
+            const label = createSVG("text", {
+              x: cx,
+              y: cy - 8,
+              class: "connection-label",
+              id: `conn-label-${i}`,
+            });
+            label.textContent = conn.label;
+            connGroup.appendChild(label);
+          }
+        });
+        canvas.appendChild(connGroup);
+      }
+
+      // ─── Draw nodes ───
+      function drawNodes(modules) {
+        const nodeGroup = createSVG("g", { id: "nodes" });
+        Object.values(modules).forEach((mod) => {
+          const g = createSVG("g", {
+            class: "node-group",
+            "data-id": mod.id,
+            transform: `translate(${mod.x}, ${mod.y})`,
+          });
+
+          // Claude gets special treatment — larger glow, golden ring
+          const isEngine = mod.id === "llm";
+          const glowR = isEngine ? mod.radius + 30 : mod.radius + 16;
+          const lt = isLight();
+          const glowOpacity = isEngine
+            ? lt
+              ? "0.12"
+              : "0.1"
+            : lt
+              ? "0.08"
+              : "0.06";
+
+          const c = tc(mod.color);
+          const glow = createSVG("circle", {
+            cx: 0,
+            cy: 0,
+            r: glowR,
+            fill: c,
+            opacity: glowOpacity,
+          });
+          g.appendChild(glow);
+          if (isEngine) {
+            const glow2 = createSVG("circle", {
+              cx: 0,
+              cy: 0,
+              r: mod.radius + 50,
+              fill: c,
+              opacity: lt ? "0.06" : "0.04",
+            });
+            g.appendChild(glow2);
+          }
+
+          const ring = createSVG("circle", {
+            cx: 0,
+            cy: 0,
+            r: mod.radius + 8,
+            class: "node-ring",
+            stroke: c,
+          });
+          g.appendChild(ring);
+
+          const bg = createSVG("circle", {
+            cx: 0,
+            cy: 0,
+            r: mod.radius,
+            class: "node-bg",
+            fill: c,
+            opacity: isEngine ? (lt ? "0.18" : "0.2") : lt ? "0.12" : "0.15",
+            stroke: c,
+            "stroke-width": isEngine ? "3" : "2",
+            "stroke-opacity": isEngine
+              ? lt
+                ? "0.8"
+                : "0.7"
+              : lt
+                ? "0.6"
+                : "0.5",
+          });
+          g.appendChild(bg);
+
+          const iconSize = isEngine ? 32 : 24;
+          const icon = createSVG("text", {
+            x: 0,
+            y: -6,
+            class: "node-icon",
+            "font-size": iconSize,
+          });
+          icon.textContent = mod.icon;
+          g.appendChild(icon);
+
+          const title = createSVG("text", {
+            x: 0,
+            y: mod.radius + 18,
+            class: "node-title",
+          });
+          title.textContent = mod.title;
+          g.appendChild(title);
+
+          const sub = createSVG("text", {
+            x: 0,
+            y: mod.radius + 32,
+            class: "node-subtitle",
+          });
+          sub.textContent = mod.subtitle;
+          g.appendChild(sub);
+
+          if (mod.badge) {
+            const bw = mod.badge.length * 6.5 + 12;
+            const bx = mod.radius * 0.6,
+              by = -mod.radius * 0.7;
+            const badgeBg = createSVG("rect", {
+              x: bx - bw / 2,
+              y: by - 9,
+              width: bw,
+              height: 18,
+              rx: 9,
+              fill: tc(mod.badgeColor),
+              opacity: "0.9",
+            });
+            g.appendChild(badgeBg);
+            const badgeText = createSVG("text", {
+              x: bx,
+              y: by,
+              class: "node-badge",
+              fill: "#0a0e1a",
+            });
+            badgeText.textContent = mod.badge;
+            g.appendChild(badgeText);
+          }
+
+          g.addEventListener("click", (e) => {
+            e.stopPropagation();
+            selectNode(mod.id);
+          });
+          g.addEventListener("mouseenter", () => highlightConnections(mod.id));
+          g.addEventListener("mouseleave", () => {
+            if (!activeNode) unhighlightAll();
+          });
+          nodeGroup.appendChild(g);
+        });
+        canvas.appendChild(nodeGroup);
+      }
+
+      // ─── Draw step numbers ───
+      function drawStepNumbers(steps, modules) {
+        const stepGroup = createSVG("g", { id: "step-numbers" });
+        steps.forEach((id, i) => {
+          const mod = modules[id];
+          if (!mod) return;
+          const numBg = createSVG("circle", {
+            cx: mod.x - mod.radius * 0.7,
+            cy: mod.y - mod.radius * 0.7,
+            r: 11,
+            fill: isLight() ? "#e2e8f0" : "#1e293b",
+            stroke: tc(mod.color),
+            "stroke-width": "1.5",
+            "stroke-opacity": "0.6",
+          });
+          stepGroup.appendChild(numBg);
+          const num = createSVG("text", {
+            x: mod.x - mod.radius * 0.7,
+            y: mod.y - mod.radius * 0.7,
+            "text-anchor": "middle",
+            "dominant-baseline": "central",
+            "font-size": "10",
+            "font-weight": "700",
+            fill: tc(mod.color),
+          });
+          num.textContent = i + 1;
+          stepGroup.appendChild(num);
+        });
+        canvas.appendChild(stepGroup);
+      }
+
+      // ─── Particles ───
+      function initParticles(connections, modules) {
+        const particleGroup = createSVG("g", { id: "particles" });
+        canvas.appendChild(particleGroup);
+        particles = [];
+        const mainConns = connections.filter((c) => !c.thin);
+        mainConns.forEach((conn) => {
+          for (let p = 0; p < 2; p++) {
+            particles.push({
+              conn,
+              progress: Math.random(),
+              speed: 0.002 + Math.random() * 0.002,
+              size: 2 + Math.random() * 2,
+            });
+          }
+        });
+        function animate() {
+          while (particleGroup.firstChild)
+            particleGroup.removeChild(particleGroup.firstChild);
+          particles.forEach((p) => {
+            p.progress += p.speed;
+            if (p.progress > 1) p.progress -= 1;
+            const from = modules[p.conn.from],
+              to = modules[p.conn.to];
+            if (!from || !to) return;
+            const dx = to.x - from.x,
+              dy = to.y - from.y,
+              dist = Math.sqrt(dx * dx + dy * dy);
+            const nx = dx / dist,
+              ny = dy / dist;
+            const x1 = from.x + nx * (from.radius + 6),
+              y1 = from.y + ny * (from.radius + 6);
+            const x2 = to.x - nx * (to.radius + 6),
+              y2 = to.y - ny * (to.radius + 6);
+            const mx = (x1 + x2) / 2,
+              my = (y1 + y2) / 2;
+            const cx2 = mx + -(y2 - y1) * 0.1,
+              cy2 = my + (x2 - x1) * 0.1;
+            const t = p.progress;
+            const px =
+              (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * cx2 + t * t * x2;
+            const py =
+              (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * cy2 + t * t * y2;
+            const dot = createSVG("circle", {
+              cx: px,
+              cy: py,
+              r: p.size,
+              fill: tc(p.conn.color),
+              opacity: (0.4 + 0.6 * Math.sin(p.progress * Math.PI)).toFixed(2),
+            });
+            particleGroup.appendChild(dot);
+          });
+          animFrame = requestAnimationFrame(animate);
+        }
+        animate();
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // GENTLE NODE JIGGLE — soft spring physics
+      // ═══════════════════════════════════════════════════════════════
+      let jiggleOffsets = {};
+      let jiggleFrame;
+
+      function initJiggle(modules) {
+        jiggleOffsets = {};
+        Object.values(modules).forEach((mod) => {
+          jiggleOffsets[mod.id] = {
+            ox: 0,
+            oy: 0,
+            vx: (Math.random() - 0.5) * 0.15,
+            vy: (Math.random() - 0.5) * 0.15,
+          };
+        });
+        if (jiggleFrame) cancelAnimationFrame(jiggleFrame);
+        function tick() {
+          Object.entries(jiggleOffsets).forEach(([id, j]) => {
+            // Random micro-force
+            j.vx += (Math.random() - 0.5) * 0.012;
+            j.vy += (Math.random() - 0.5) * 0.012;
+            // Spring back to home
+            j.vx -= j.ox * 0.008;
+            j.vy -= j.oy * 0.008;
+            // Damping
+            j.vx *= 0.96;
+            j.vy *= 0.96;
+            // Integrate
+            j.ox += j.vx;
+            j.oy += j.vy;
+            // Clamp to ±4px
+            j.ox = Math.max(-4, Math.min(4, j.ox));
+            j.oy = Math.max(-4, Math.min(4, j.oy));
+            // Apply
+            const mods = getModules();
+            const mod = mods[id];
+            if (!mod) return;
+            const g = document.querySelector(`.node-group[data-id="${id}"]`);
+            if (g)
+              g.setAttribute(
+                "transform",
+                `translate(${mod.x + j.ox}, ${mod.y + j.oy})`,
+              );
+          });
+          jiggleFrame = requestAnimationFrame(tick);
+        }
+        tick();
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // INTERACTION
+      // ═══════════════════════════════════════════════════════════════
+
+      function getModules() {
+        if (currentView === "traditional") return TRADITIONAL_MODULES;
+        if (currentView === "system") return SYSTEM_MODULES;
+        return MARKETPLACE_MODULES;
+      }
+      function getConnections() {
+        if (currentView === "traditional") return TRADITIONAL_CONNECTIONS;
+        if (currentView === "system") return SYSTEM_CONNECTIONS;
+        return MARKETPLACE_CONNECTIONS;
+      }
+
+      function highlightConnections(nodeId) {
+        getConnections().forEach((conn, i) => {
+          const path = document.getElementById(`conn-${i}`);
+          const label = document.getElementById(`conn-label-${i}`);
+          if (conn.from === nodeId || conn.to === nodeId) {
+            path?.classList.add("highlighted");
+            label?.classList.add("visible");
+          } else {
+            path?.classList.remove("highlighted");
+            label?.classList.remove("visible");
+          }
+        });
+      }
+      function unhighlightAll() {
+        document
+          .querySelectorAll(".connection")
+          .forEach((c) => c.classList.remove("highlighted"));
+        document
+          .querySelectorAll(".connection-label")
+          .forEach((c) => c.classList.remove("visible"));
+      }
+      function selectNode(nodeId) {
+        document
+          .querySelectorAll(".node-group")
+          .forEach((g) => g.classList.remove("active"));
+        if (activeNode === nodeId) {
+          activeNode = null;
+          closePanel();
+          unhighlightAll();
+          return;
+        }
+        activeNode = nodeId;
+        document
+          .querySelector(`.node-group[data-id="${nodeId}"]`)
+          ?.classList.add("active");
+        highlightConnections(nodeId);
+        showDetail(nodeId);
+      }
+      function closePanel() {
+        document.getElementById("detailPanel").classList.remove("open");
+        activeNode = null;
+        document
+          .querySelectorAll(".node-group")
+          .forEach((g) => g.classList.remove("active"));
+        document
+          .querySelectorAll(".zone-group")
+          .forEach((g) => g.classList.remove("active"));
+        unhighlightAll();
+      }
+      canvas.addEventListener("click", (e) => {
+        if (
+          e.target === canvas ||
+          (e.target.closest(".node-group") === null &&
+            e.target.closest(".zone-group") === null &&
+            !e.target.classList.contains("connection"))
+        )
+          closePanel();
+      });
+
+      // ─── Zone detail panel ───
+      function showZoneDetail(zoneId) {
+        const z = ZONE_DETAILS[zoneId];
+        if (!z) return;
+        // Deselect any active node
+        activeNode = null;
+        document
+          .querySelectorAll(".node-group")
+          .forEach((g) => g.classList.remove("active"));
+        unhighlightAll();
+        // Highlight the clicked zone
+        document
+          .querySelectorAll(".zone-group")
+          .forEach((g) => g.classList.remove("active"));
+        document
+          .querySelector(`.zone-group[data-zone="${zoneId}"]`)
+          ?.classList.add("active");
+
+        const panel = document.getElementById("detailPanel");
+        const content = document.getElementById("detailContent");
+
+        // Find which modules live in this zone
+        const modules = getModules();
+        const residents = Object.values(modules).filter((m) => {
+          if (zoneId === "hipaa") return m.zone === "hipaa";
+          if (zoneId === "airgap") return m.zone === "airgap";
+          if (zoneId === "edge") return m.zone === "edge";
+          return false;
+        });
+        let residentsHtml = "";
+        if (residents.length) {
+          residentsHtml = `<div class="detail-section"><h3>Modules in This Zone</h3><div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">${residents.map((r) => `<span class="detail-tag" style="background:${r.color}22; color:${r.color}; border:1px solid ${r.color}44; cursor:pointer" onclick="closePanel(); setTimeout(() => selectNode('${r.id}'), 100)">${r.icon} ${r.title}</span>`).join("")}</div></div>`;
+        }
+
+        content.innerHTML = `
+          <div class="detail-icon">${z.icon}</div>
+          <div class="detail-title" style="color: ${z.color}">${z.title}</div>
+          <div class="detail-subtitle">${z.subtitle}</div>
+          <div class="detail-section"><h3>Overview</h3><p>${z.description}</p></div>
+          <div class="detail-section"><h3>Security Controls</h3><ul>${z.whatItDoes.map((w) => `<li>${w}</li>`).join("")}</ul></div>
+          <div class="detail-section"><h3>Architecture Flow</h3><div class="detail-flow">${z.flow}</div></div>
+          ${residentsHtml}
+          <div class="detail-section"><h3>Tech Details</h3><p><strong>Stack:</strong> ${z.techStack}</p></div>`;
+        panel.classList.add("open");
+        applyTextScale();
+      }
+
+      // ─── Detail panel ───
+      function showDetail(nodeId) {
+        const modules = getModules();
+        const mod = modules[nodeId];
+        if (!mod) return;
+        const d = mod.detail;
+        const panel = document.getElementById("detailPanel");
+        const content = document.getElementById("detailContent");
+        const connections = getConnections();
+
+        const connectedTo = connections
+          .filter((c) => c.from === nodeId && c.label)
+          .map((c) => ({
+            target: modules[c.to]?.title || c.to,
+            label: c.label,
+            color: c.color,
+          }));
+        const connectedFrom = connections
+          .filter((c) => c.to === nodeId && c.label)
+          .map((c) => ({
+            target: modules[c.from]?.title || c.from,
+            label: c.label,
+            color: c.color,
+          }));
+        let connHtml = "";
+        if (connectedTo.length || connectedFrom.length) {
+          connHtml = `<div class="detail-section"><h3>Connections</h3><table class="conn-table"><tr><th>Direction</th><th>Module</th><th>Data</th></tr>${connectedFrom.map((c) => `<tr><td class="arrow">\u2190 from</td><td>${c.target}</td><td>${c.label}</td></tr>`).join("")}${connectedTo.map((c) => `<tr><td class="arrow">\u2192 to</td><td>${c.target}</td><td>${c.label}</td></tr>`).join("")}</table></div>`;
+        }
+        content.innerHTML = `
+          <div class="detail-icon">${mod.icon}</div>
+          <div class="detail-title" style="color: ${mod.color}">${mod.title}</div>
+          <div class="detail-subtitle">${mod.subtitle}</div>
+          <div class="detail-section"><h3>Overview</h3><p>${d.description}</p></div>
+          <div class="detail-section"><h3>What It Does</h3><ul>${d.whatItDoes.map((w) => `<li>${w}</li>`).join("")}</ul></div>
+          <div class="detail-section"><h3>Internal Flow</h3><div class="detail-flow">${d.flow}</div></div>
+          ${connHtml}
+          <div class="detail-section"><h3>Tech Details</h3><p><strong>Stack:</strong> ${d.techStack}</p><p><strong>LLM Calls:</strong> ${d.llmCalls}</p><p><strong>DB Tables:</strong></p><div style="margin-top:4px">${d.dbTables.map((t) => `<span class="detail-tag" style="background:${mod.color}22; color:${mod.color}; border:1px solid ${mod.color}44">${t}</span>`).join("")}</div><p style="margin-top:10px"><strong>Source:</strong> <code style="color:${mod.color};font-size:12px">${d.fileRef}</code></p></div>`;
+        panel.classList.add("open");
+        applyTextScale();
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // VIEW SWITCHING
+      // ═══════════════════════════════════════════════════════════════
+
+      function clearCanvas() {
+        if (animFrame) cancelAnimationFrame(animFrame);
+        if (jiggleFrame) cancelAnimationFrame(jiggleFrame);
+        particles = [];
+        [
+          "watermark",
+          "zones",
+          "connections",
+          "nodes",
+          "step-numbers",
+          "particles",
+        ].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.remove();
+        });
+        closePanel();
+      }
+
+      function switchView(view) {
+        currentView = view;
+        document
+          .querySelectorAll(".view-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document.getElementById(`btn-${view}`).classList.add("active");
+
+        document.getElementById("legendTraditional").style.display =
+          view === "traditional" ? "block" : "none";
+        document.getElementById("legendSystem").style.display =
+          view === "system" ? "block" : "none";
+        document.getElementById("legendMarketplace").style.display =
+          view === "marketplace" ? "block" : "none";
+
+        clearCanvas();
+        viewX = 0;
+        viewY = 0;
+        zoom = 0.7;
+        updateViewBox();
+
+        drawWatermark();
+
+        if (view === "traditional") {
+          drawConnections(TRADITIONAL_CONNECTIONS, TRADITIONAL_MODULES);
+          drawNodes(TRADITIONAL_MODULES);
+          initJiggle(TRADITIONAL_MODULES);
+          drawStepNumbers(
+            ["trad_patient", "trad_physician", "trad_careplan", "trad_health"],
+            TRADITIONAL_MODULES,
+          );
+          initParticles(TRADITIONAL_CONNECTIONS, TRADITIONAL_MODULES);
+        } else if (view === "system") {
+          drawZones();
+          drawConnections(SYSTEM_CONNECTIONS, SYSTEM_MODULES);
+          drawNodes(SYSTEM_MODULES);
+          initJiggle(SYSTEM_MODULES);
+          drawStepNumbers(
+            [
+              "physician",
+              "entry",
+              "dao",
+              "semantic",
+              "causal",
+              "delphi",
+              "delphi2m",
+              "precision",
+              "safety",
+              "exit",
+              "patportal",
+              "patient",
+            ],
+            SYSTEM_MODULES,
+          );
+          initParticles(SYSTEM_CONNECTIONS, SYSTEM_MODULES);
+        } else {
+          drawConnections(MARKETPLACE_CONNECTIONS, MARKETPLACE_MODULES);
+          drawNodes(MARKETPLACE_MODULES);
+          initJiggle(MARKETPLACE_MODULES);
+          drawStepNumbers(
+            [
+              "creator",
+              "drb",
+              "minting",
+              "listing",
+              "portal",
+              "outcomes",
+              "remix",
+            ],
+            MARKETPLACE_MODULES,
+          );
+          initParticles(MARKETPLACE_CONNECTIONS, MARKETPLACE_MODULES);
+        }
+        applyTextScale();
+      }
+
+      // ═══════════════════════════════════════════════════════════════
+      // INIT
+      // ═══════════════════════════════════════════════════════════════
+
+      window.addEventListener("resize", updateViewBox);
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closePanel();
+        if (e.key === "+" || e.key === "=") zoomIn();
+        if (e.key === "-") zoomOut();
+        if (e.key === "r" || e.key === "R") resetView();
+        if (e.key === "1") switchView("traditional");
+        if (e.key === "2") switchView("system");
+        if (e.key === "3") switchView("marketplace");
+        if (e.key === "t" || e.key === "T") toggleTheme();
+        if (e.key === "f" || e.key === "F") cycleTextSize();
+      });
+
+      switchView("traditional");
+    </script>
+  </body>
+</html>
