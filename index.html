@@ -1078,7 +1078,14 @@
       Delphica by ICCare &mdash; &copy; 2026
     </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+      // ── Supabase client ──
+      const _sb = supabase.createClient(
+        "https://mhzzdrgkuwgcglhuenmk.supabase.co",
+        "sb_publishable_RgttOVtOdeMopfevZ1g_Nw_Y7u1eTlo"
+      );
+
       // ── Theme ──
       function toggleTheme() {
         const html = document.documentElement;
@@ -1160,23 +1167,26 @@
       // ── Form submission ──
       async function handleSubmit(e) {
         e.preventDefault();
-        const email = document.getElementById("emailInput").value;
+        const email = document.getElementById("emailInput").value.trim();
         const submitBtn = document.getElementById("submitBtn");
+
+        if (!email || !email.includes("@")) return;
 
         submitBtn.disabled = true;
         submitBtn.textContent = "...";
 
-        // ─────────────────────────────────────────────────
-        // TODO: Replace with your email capture API call
-        // ─────────────────────────────────────────────────
+        const { error } = await _sb
+          .from("waitlist_signups")
+          .insert({ email, role: selectedRole });
 
-        console.log("Signup:", { email, role: selectedRole });
-
-        await new Promise((r) => setTimeout(r, 500));
-
-        document.getElementById("captureForm").style.display = "none";
-        const success = document.getElementById("captureSuccess");
-        success.classList.add("visible");
+        if (!error || error.code === "23505") {
+          document.getElementById("captureForm").style.display = "none";
+          document.getElementById("captureSuccess").classList.add("visible");
+        } else {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Join Preview";
+          console.error("Signup error:", error.message);
+        }
       }
 
       // ── Intersection observer for trace auto-start ──
