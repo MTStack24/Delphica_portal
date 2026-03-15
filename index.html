@@ -1102,6 +1102,214 @@
         }
       })();
 
+      // ── Case Studies ──
+      const caseStudies = [
+        {
+          encounterNo: "4,271",
+          hookHTML: `A 54-year-old male presents with <em>persistent fatigue</em>,
+            <em>joint pain</em>, and <em>elevated ferritin</em>.<br /><br />
+            His last three physicians
+            <span class="highlight">missed the diagnosis</span>.`,
+          ctaText: "What would you check?",
+          traceLines: [
+            {
+              text: '<span class="label">Ingesting encounter... </span><span class="value">structured</span>',
+              delay: 0,
+            },
+            {
+              text: '<span class="label">Parsing symptoms: </span><span class="value">fatigue, arthralgia, elevated ferritin</span>',
+              delay: 400,
+            },
+            {
+              text: '<span class="label">Retrieving differential: </span><span class="value">12 candidates</span>',
+              delay: 900,
+            },
+            {
+              text: '<span class="label">Querying literature: </span><span class="value">2,847 indexed sources</span>',
+              delay: 1500,
+            },
+            {
+              text: '<span class="label">Cross-referencing: </span><span class="diagnosis">hereditary hemochromatosis</span><span class="label"> &mdash; probability </span><span class="prob">0.87</span>',
+              delay: 2200,
+              hasCursor: true,
+            },
+            {
+              text: '<span class="label">Recommended: </span><span class="value">HFE gene test, transferrin saturation panel</span>',
+              delay: 3200,
+            },
+            {
+              text: "3 physicians missed this. The literature didn't.",
+              delay: 4200,
+              missed: true,
+            },
+          ],
+          punchTime: "4 seconds",
+          punchCompare:
+            'The average diagnostic delay for hereditary hemochromatosis is <span class="slow">4.3 years</span>.',
+        },
+        {
+          encounterNo: "11,803",
+          hookHTML: `A 38-year-old woman presents with <em>recurrent migraines</em>,
+            <em>visual aura</em>, and <em>unexplained stroke</em> at age 35.<br /><br />
+            Two neurologists attributed it to
+            <span class="highlight">stress and oral contraceptives</span>.`,
+          ctaText: "What's the pattern?",
+          traceLines: [
+            {
+              text: '<span class="label">Ingesting encounter... </span><span class="value">structured</span>',
+              delay: 0,
+            },
+            {
+              text: '<span class="label">Parsing symptoms: </span><span class="value">migraine with aura, early-onset stroke, family history of early dementia</span>',
+              delay: 400,
+            },
+            {
+              text: '<span class="label">Retrieving differential: </span><span class="value">9 candidates</span>',
+              delay: 900,
+            },
+            {
+              text: '<span class="label">Flagging pattern: </span><span class="value">migraine + stroke + cognitive decline in parent &rarr; monogenic vasculopathy</span>',
+              delay: 1500,
+            },
+            {
+              text: '<span class="label">Cross-referencing: </span><span class="diagnosis">CADASIL (NOTCH3 mutation)</span><span class="label"> &mdash; probability </span><span class="prob">0.81</span>',
+              delay: 2200,
+              hasCursor: true,
+            },
+            {
+              text: '<span class="label">Recommended: </span><span class="value">NOTCH3 genetic testing, brain MRI with SWI sequences</span>',
+              delay: 3200,
+            },
+            {
+              text: "2 neurologists missed the hereditary link. The genome didn't.",
+              delay: 4200,
+              missed: true,
+            },
+          ],
+          punchTime: "3 seconds",
+          punchCompare:
+            'The average diagnostic delay for CADASIL is <span class="slow">10+ years</span>.',
+        },
+        {
+          encounterNo: "7,429",
+          hookHTML: `A 61-year-old male with <em>type 2 diabetes</em> presents with
+            <em>worsening renal function</em> and <em>unexplained anemia</em>.<br /><br />
+            His PCP and endocrinologist both called it
+            <span class="highlight">diabetic nephropathy</span>.`,
+          ctaText: "Is it that simple?",
+          traceLines: [
+            {
+              text: '<span class="label">Ingesting encounter... </span><span class="value">structured</span>',
+              delay: 0,
+            },
+            {
+              text: '<span class="label">Parsing labs: </span><span class="value">declining eGFR, normocytic anemia, proteinuria without retinopathy</span>',
+              delay: 400,
+            },
+            {
+              text: '<span class="label">Flagging inconsistency: </span><span class="value">diabetic nephropathy without concurrent retinopathy is atypical</span>',
+              delay: 900,
+            },
+            {
+              text: '<span class="label">Querying literature: </span><span class="value">3,214 indexed sources on non-diabetic CKD</span>',
+              delay: 1500,
+            },
+            {
+              text: '<span class="label">Cross-referencing: </span><span class="diagnosis">multiple myeloma</span><span class="label"> &mdash; probability </span><span class="prob">0.74</span>',
+              delay: 2200,
+              hasCursor: true,
+            },
+            {
+              text: '<span class="label">Recommended: </span><span class="value">SPEP, urine Bence Jones protein, serum free light chains</span>',
+              delay: 3200,
+            },
+            {
+              text: "2 specialists assumed the obvious. The data pointed elsewhere.",
+              delay: 4200,
+              missed: true,
+            },
+          ],
+          punchTime: "5 seconds",
+          punchCompare:
+            'Multiple myeloma is initially misdiagnosed in <span class="slow">~40% of cases</span>.',
+        },
+        {
+          encounterNo: "2,918",
+          hookHTML: `A 29-year-old woman presents with <em>chronic fatigue</em>,
+            <em>brain fog</em>, and <em>cold intolerance</em>.<br /><br />
+            Her TSH is normal. Three doctors told her
+            <span class="highlight">it's just anxiety</span>.`,
+          ctaText: "What did they miss?",
+          traceLines: [
+            {
+              text: '<span class="label">Ingesting encounter... </span><span class="value">structured</span>',
+              delay: 0,
+            },
+            {
+              text: '<span class="label">Parsing symptoms: </span><span class="value">fatigue, cognitive dysfunction, cold sensitivity, normal TSH</span>',
+              delay: 400,
+            },
+            {
+              text: '<span class="label">Expanding workup: </span><span class="value">TSH normal but no free T3/T4 or antibody panel ordered</span>',
+              delay: 900,
+            },
+            {
+              text: '<span class="label">Querying literature: </span><span class="value">1,893 sources on euthyroid autoimmune thyroiditis</span>',
+              delay: 1500,
+            },
+            {
+              text: '<span class="label">Cross-referencing: </span><span class="diagnosis">Hashimoto\'s thyroiditis (early-stage)</span><span class="label"> &mdash; probability </span><span class="prob">0.79</span>',
+              delay: 2200,
+              hasCursor: true,
+            },
+            {
+              text: '<span class="label">Recommended: </span><span class="value">anti-TPO antibodies, free T3, thyroid ultrasound</span>',
+              delay: 3200,
+            },
+            {
+              text: "3 doctors stopped at TSH. The antibodies told a different story.",
+              delay: 4200,
+              missed: true,
+            },
+          ],
+          punchTime: "3 seconds",
+          punchCompare:
+            'Hashimoto\'s takes an average of <span class="slow">4.5 years</span> and 5 doctors to diagnose.',
+        },
+      ];
+
+      // Pick a random case on each page load
+      const currentCase =
+        caseStudies[Math.floor(Math.random() * caseStudies.length)];
+
+      // ── Populate the page with selected case ──
+      (function loadCase() {
+        const c = currentCase;
+        document.querySelector(".case-label").textContent =
+          `Clinical Encounter No. ${c.encounterNo}`;
+        document.querySelector(".case-text").innerHTML = c.hookHTML;
+        document.querySelector(".hook-cta .btn-primary").textContent =
+          c.ctaText;
+
+        // Build trace lines
+        const traceContainer = document.getElementById("traceLines");
+        traceContainer.innerHTML = c.traceLines
+          .map((line) => {
+            const classes = ["trace-line"];
+            if (line.missed) classes.push("missed");
+            return `<div class="${classes.join(" ")}" data-delay="${line.delay}">
+            <span class="arrow">&rarr;</span>
+            ${line.text}${line.hasCursor ? '<span class="trace-cursor" id="traceCursor"></span>' : ""}
+          </div>`;
+          })
+          .join("\n");
+
+        // Punchline
+        document.querySelector(".punchline-time").innerHTML =
+          `This took Delphica <span class="fast">${c.punchTime}</span>.`;
+        document.querySelector(".punchline-compare").innerHTML = c.punchCompare;
+      })();
+
       // ── State ──
       let traceStarted = false;
       let selectedRole = null;
@@ -1122,7 +1330,7 @@
         const punchline = document.getElementById("tracePunchline");
         const nextBtn = document.getElementById("traceNext");
 
-        cursor.classList.add("active");
+        if (cursor) cursor.classList.add("active");
 
         lines.forEach((line, i) => {
           const delay = parseInt(line.dataset.delay);
@@ -1131,7 +1339,7 @@
 
             if (i === lines.length - 1) {
               setTimeout(() => {
-                cursor.classList.remove("active");
+                if (cursor) cursor.classList.remove("active");
                 punchline.classList.add("visible");
                 setTimeout(() => {
                   nextBtn.classList.add("visible");
