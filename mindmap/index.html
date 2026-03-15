@@ -2136,7 +2136,12 @@
         updateViewBox();
       }
 
-      // Pan
+      // Pan — track drag distance to distinguish clicks from drags
+      let didDrag = false;
+      let panOriginX = 0,
+        panOriginY = 0;
+      const DRAG_THRESHOLD = 5; // px — movement below this counts as a click
+
       canvas.addEventListener("mousedown", (e) => {
         if (
           e.target === canvas ||
@@ -2146,12 +2151,20 @@
           e.target.tagName === "ellipse"
         ) {
           dragging = true;
+          didDrag = false;
           dragStartX = e.clientX;
           dragStartY = e.clientY;
+          panOriginX = e.clientX;
+          panOriginY = e.clientY;
         }
       });
       window.addEventListener("mousemove", (e) => {
         if (!dragging) return;
+        const dx = e.clientX - panOriginX;
+        const dy = e.clientY - panOriginY;
+        if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
+          didDrag = true;
+        }
         viewX -= (e.clientX - dragStartX) / zoom;
         viewY -= (e.clientY - dragStartY) / zoom;
         dragStartX = e.clientX;
@@ -2807,6 +2820,11 @@
         unhighlightAll();
       }
       canvas.addEventListener("click", (e) => {
+        // Ignore clicks that were actually drags (pan gestures)
+        if (didDrag) {
+          didDrag = false;
+          return;
+        }
         if (
           e.target === canvas ||
           (e.target.closest(".node-group") === null &&
