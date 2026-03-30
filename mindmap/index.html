@@ -321,18 +321,67 @@
         cursor: pointer;
         pointer-events: all;
       }
+
+      /* Zone glow pulse animation */
+      @keyframes zone-pulse-edge {
+        0%,
+        100% {
+          filter: drop-shadow(0 0 3px rgba(71, 85, 105, 0.4));
+          stroke-opacity: 0.6;
+        }
+        50% {
+          filter: drop-shadow(0 0 8px rgba(71, 85, 105, 0.7));
+          stroke-opacity: 0.85;
+        }
+      }
+      @keyframes zone-pulse-airgap {
+        0%,
+        100% {
+          filter: drop-shadow(0 0 3px rgba(251, 113, 133, 0.4));
+          stroke-opacity: 0.7;
+        }
+        50% {
+          filter: drop-shadow(0 0 10px rgba(251, 113, 133, 0.7));
+          stroke-opacity: 0.95;
+        }
+      }
+      @keyframes zone-pulse-hipaa {
+        0%,
+        100% {
+          filter: drop-shadow(0 0 3px rgba(96, 165, 250, 0.4));
+          stroke-opacity: 0.65;
+        }
+        50% {
+          filter: drop-shadow(0 0 10px rgba(96, 165, 250, 0.7));
+          stroke-opacity: 0.9;
+        }
+      }
+      .zone-group[data-zone="edge"] .zone-border {
+        animation: zone-pulse-edge 4s ease-in-out infinite;
+      }
+      .zone-group[data-zone="airgap"] .zone-border {
+        animation: zone-pulse-airgap 3.5s ease-in-out infinite;
+      }
+      .zone-group[data-zone="hipaa"] .zone-border {
+        animation: zone-pulse-hipaa 3s ease-in-out infinite;
+      }
+
       .zone-hit:hover + rect,
       .zone-hit:hover ~ .zone-border {
-        stroke-opacity: 0.6 !important;
+        stroke-opacity: 1 !important;
+        filter: drop-shadow(0 0 14px currentColor) !important;
+        animation: none !important;
       }
       .zone-group:hover .zone-border {
-        stroke-opacity: 0.6;
+        stroke-opacity: 1;
+        filter: drop-shadow(0 0 14px currentColor);
+        animation: none !important;
       }
       .zone-group {
         cursor: pointer;
       }
       .zone-group:hover .zone-label-text {
-        fill-opacity: 0.8 !important;
+        fill-opacity: 1 !important;
       }
 
       /* ─── DETAIL PANEL ─── */
@@ -2291,6 +2340,20 @@
           class: "zone-group",
           "data-zone": "edge",
         });
+        // Glow layer behind the border
+        const edgeGlow = createSVG("rect", {
+          x: -880,
+          y: -600,
+          width: 1760,
+          height: 1220,
+          rx: 24,
+          fill: "none",
+          stroke: isLight() ? "#475569" : "#94a3b8",
+          "stroke-width": isLight() ? "8" : "4",
+          "stroke-opacity": isLight() ? "0.12" : "0.06",
+          "stroke-dasharray": "8 4",
+        });
+        edgeG.appendChild(edgeGlow);
         const edge = createSVG("rect", {
           x: -880,
           y: -600,
@@ -2299,8 +2362,8 @@
           rx: 24,
           fill: "none",
           stroke: isLight() ? "#475569" : "#94a3b8",
-          "stroke-width": isLight() ? "3" : "1",
-          "stroke-opacity": isLight() ? "0.6" : "0.15",
+          "stroke-width": isLight() ? "3.5" : "1.5",
+          "stroke-opacity": isLight() ? "0.7" : "0.2",
           "stroke-dasharray": "8 4",
           class: "zone-border",
         });
@@ -2336,6 +2399,20 @@
           class: "zone-group",
           "data-zone": "airgap",
         });
+        // Glow layer behind the border
+        const gapGlow = createSVG("rect", {
+          x: -620,
+          y: -570,
+          width: 1240,
+          height: 1140,
+          rx: 20,
+          fill: "none",
+          stroke: "#fb7185",
+          "stroke-width": isLight() ? "10" : "6",
+          "stroke-opacity": isLight() ? "0.1" : "0.06",
+          "stroke-dasharray": "12 6",
+        });
+        gapG.appendChild(gapGlow);
         const gap = createSVG("rect", {
           x: -620,
           y: -570,
@@ -2344,8 +2421,8 @@
           rx: 20,
           fill: "none",
           stroke: "#fb7185",
-          "stroke-width": isLight() ? "4" : "2.5",
-          "stroke-opacity": isLight() ? "0.7" : "0.25",
+          "stroke-width": isLight() ? "4.5" : "3",
+          "stroke-opacity": isLight() ? "0.8" : "0.3",
           "stroke-dasharray": "12 6",
           class: "zone-border",
         });
@@ -2380,6 +2457,19 @@
           class: "zone-group",
           "data-zone": "hipaa",
         });
+        // Glow layer behind the border
+        const hipaaGlow = createSVG("rect", {
+          x: -470,
+          y: -530,
+          width: 940,
+          height: 1060,
+          rx: 16,
+          fill: "none",
+          stroke: "#60a5fa",
+          "stroke-width": isLight() ? "10" : "6",
+          "stroke-opacity": isLight() ? "0.1" : "0.05",
+        });
+        hipaaG.appendChild(hipaaGlow);
         const hipaa = createSVG("rect", {
           x: -470,
           y: -530,
@@ -2389,8 +2479,8 @@
           fill: "#60a5fa",
           "fill-opacity": isLight() ? "0.06" : "0.03",
           stroke: "#60a5fa",
-          "stroke-width": isLight() ? "3.5" : "2",
-          "stroke-opacity": isLight() ? "0.65" : "0.2",
+          "stroke-width": isLight() ? "4" : "2.5",
+          "stroke-opacity": isLight() ? "0.75" : "0.25",
           class: "zone-border",
         });
         hipaaG.appendChild(hipaa);
