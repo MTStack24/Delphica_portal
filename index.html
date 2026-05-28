@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Delphica Health — Intake that gives doctors their time back</title>
+    <link rel="icon" type="image/png" href="Delphica_logo1.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -131,25 +132,10 @@
         gap: 12px;
       }
       .brand .mark {
-        width: 22px;
-        height: 22px;
-        position: relative;
-      }
-      .brand .mark::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border: 1.5px solid var(--accent);
-        border-radius: 50%;
-      }
-      .brand .mark::after {
-        content: "";
-        position: absolute;
-        inset: 5px;
-        background: var(--accent);
-        border-radius: 50%;
-        box-shadow: 0 0 14px var(--accent-glow);
-        animation: pulse 2.6s ease-in-out infinite;
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+        mix-blend-mode: multiply;
       }
       @keyframes pulse {
         0%,
@@ -1053,7 +1039,7 @@
 
     <nav class="top">
       <div class="brand">
-        <span class="mark"></span>
+        <img class="mark" src="Delphica_logo1.png" alt="Delphica Health logo" />
         <span>Delphica Health</span>
       </div>
       <div class="nav-links">
